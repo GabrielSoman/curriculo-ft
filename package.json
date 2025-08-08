@@ -7,6 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node src/server/server.js",
+    "easypanel": "npm run build && npm start"
     "easypanel": "npm run build && node src/server/server.js"
   },
   "dependencies": {
