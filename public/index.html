@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Currículos Automático</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .form-section, .preview-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: #f8f9fa;
+            background: #f8f9fa;
+        }
+
+        .sample-data-btn {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+            font-size: 14px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .form-section, .preview-section {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Gerador de Currículos</h1>
+            <p>Crie currículos profissionais automaticamente com nossa API</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2 class="section-title">Dados do Candidato</h2>
+                
+                <button type="button" class="btn sample-data-btn" onclick="preencherDadosExemplo()">
+                    📝 Preencher com Dados de Exemplo
+                </button>
+
+                <form id="resumeForm">
+                    <div class="form-group">
+                        <label for="nome">Nome Completo *</label>
+                        <input type="text" id="nome" name="nome" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cpf">CPF</label>
+                            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
+                        </div>
+                        <div class="form-group">
+                            <label for="rg">RG</label>
+                            <input type="text" id="rg" name="rg">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="telefone">Telefone</label>
+                            <input type="tel" id="telefone" name="telefone" placeholder="+5551999999999">
+                        </div>
+                        <div class="form-group">
+                            <label for="nascimento">Data de Nascimento</label>
+                            <input type="text" id="nascimento" name="nascimento" placeholder="DD/MM/AAAA">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contato-alternativo">Contato Alternativo</label>
+                        <input type="tel" id="contato-alternativo" name="contato-alternativo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endereco">Endereço</label>
+                        <input type="text" id="endereco" name="endereco">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cidade">Cidade</label>
+                            <input type="text" id="cidade" name="cidade">
+                        </div>
+                        <div class="form-group">
+                            <label for="estado">Estado</label>
+                            <input type="text" id="estado" name="estado">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cep">CEP</label>
+                        <input type="text" id="cep" name="cep" placeholder="00000-000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="escolaridade">Escolaridade</label>
+                        <input type="text" id="escolaridade" name="escolaridade" placeholder="Ex: Ensino Médio, Ensino Técnico">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="escola-faculdade">Escola/Faculdade</label>
+                        <input type="text" id="escola-faculdade" name="escola-faculdade">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="disponibilidade-turno">Disponibilidade de Turno</label>
+                        <input type="text" id="disponibilidade-turno" name="disponibilidade-turno" placeholder="Ex: Manhã, Tarde, Noite">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cursos-extras">Cursos Extras</label>
+                        <textarea id="cursos-extras" name="cursos-extras" placeholder="Liste seus cursos e certificações separados por vírgula"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experiencia">Experiência Profissional</label>
+                        <textarea id="experiencia" name="experiencia" placeholder="Descreva sua experiência profissional"></textarea>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="visualizarCurriculo()">
+                            👀 Visualizar
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="baixarCurriculo()">
+                            📥 Baixar PDF
+                        </button>
+                    </div>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Gerando currículo...</p>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <h2 class="section-title">Pré-visualização</h2>
+                <iframe id="previewFrame" class="preview-frame" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function preencherDadosExemplo() {
+            const exemploData = {
+                "nome": "João Silva",
+                "cpf": "123.456.789-00",
+                "rg": "1234567",
+                "telefone": "+5551999999999",
+                "nascimento": "03/09/1995",
+                "cep": "91520-702",
+                "endereco": "Rua das Flores, 123",
+                "cidade": "Porto Alegre",
+                "estado": "Rio Grande do Sul",
+                "contato-alternativo": "5199123456789",
+                "escolaridade": "Ensino Médio Completo, Técnico em Informática",
+                "escola-faculdade": "Instituto Federal de Educação, Ciência e Tecnologia do Rio Grande do Sul - Campus Restinga",
+                "disponibilidade-turno": "Tarde, Noite",
+                "experiencia": "Desenvolvedor júnior com 2 anos de experiência em desenvolvimento web utilizando JavaScript, React e Node.js. Participação em projetos de e-commerce e sistemas internos.",
+                "cursos-extras": "JavaScript Avançado, React.js, Node.js, Git e GitHub, Metodologias Ágeis"
+            };
+
+            Object.keys(exemploData).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = exemploData[key];
+                }
+            });
+
+            visualizarCurriculo();
+        }
+
+        function coletarDadosFormulario() {
+            const formData = new FormData(document.getElementById('resumeForm'));
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            return data;
+        }
+
+        async function visualizarCurriculo() {
+            const data = coletarDadosFormulario();
+            
+            if (!data.nome) {
+                alert('Por favor, preencha pelo menos o nome para visualizar o currículo.');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/visualizar-curriculo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    const previewFrame = document.getElementById('previewFrame');
+                    previewFrame.srcdoc = html;
+                } else {
+                    alert('Erro ao gerar visualização do currículo');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao conectar com o servidor');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function baixarCurriculo() {
+            const data = coletarDadosFormulario();
+            
+            if (!data.nome) {
+                alert('Por favor, preencha pelo menos o nome para gerar o currículo.');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/gerar-curriculo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `curriculo-${data.nome || 'usuario'}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    alert('Erro ao gerar currículo PDF');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao conectar com o servidor');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Carregar dados de exemplo automaticamente
+        window.addEventListener('load', () => {
+            preencherDadosExemplo();
+        });
+    </script>
+</body>
+</html>
