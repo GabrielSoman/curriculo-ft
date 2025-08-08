@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "vite",
     "dev:80": "vite --port 80 --host",
-    "server": "tsx src/server/server.ts",
-    "server:dev": "tsx watch src/server/server.ts",
+    "server": "node --loader tsx/esm src/server/server.ts",
+    "server:dev": "node --loader tsx/esm --watch src/server/server.ts",
     "build": "tsc && vite build",
     "preview": "vite preview --port 80 --host",
-    "start": "npm run build && npm run server"
+    "start": "npm run build && npm run server",
+    "compile-server": "tsc src/server/**/*.ts --outDir dist/server --module ESNext --target ES2022 --moduleResolution bundler",
+    "server:prod": "node dist/server/server.js"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
