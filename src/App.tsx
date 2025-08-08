@@ -82,7 +82,6 @@ function App() {
     const interval = setInterval(checkApiStatus, 30000);
     return () => clearInterval(interval);
   }, []);
-  const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
