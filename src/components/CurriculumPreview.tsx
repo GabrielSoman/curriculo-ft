@@ -35,7 +35,7 @@ const CurriculumPreview: React.FC<CurriculumPreviewProps> = ({ data }) => {
         fontSize: '11px', 
         lineHeight: '1.5', 
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        scale: 'min(calc(100vw / 210mm), calc((100vh - 200px) / 297mm), 0.5)',
+        transform: 'scale(min(calc(100vw / 210mm), calc((100vh - 200px) / 297mm), 0.5))',
         transformOrigin: 'top left'
       }}
     >
