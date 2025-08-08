@@ -6,12 +6,12 @@
   "scripts": {
     "dev": "vite",
     "dev:80": "vite --port 80 --host",
-    "server": "npm run build && node dist/server/server.js",
+    "easypanel": "npm install && npm run build && node dist/server/server.js",
     "server:dev": "npm run build && npm run build:server && node --watch dist/server/server.js",
     "build": "npx vite build && npm run build:server",
     "build:server": "tsc -p tsconfig.server.json",
     "preview": "vite preview --port 80 --host",
-    "start": "npm run server"
+    "start": "npm run easypanel"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
