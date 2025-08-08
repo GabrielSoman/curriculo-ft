@@ -1,58 +1,31 @@
-# Use Node.js 18 Alpine como base
+# Build stage
 FROM node:18-alpine as builder
 
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de dependências
+# Copy package files
 COPY package*.json ./
 
-# Instalar dependências
+# Install dependencies
 RUN npm ci
 
-# Copiar código fonte
+# Copy source code
 COPY . .
 
-# Build da aplicação React e servidor
-RUN npm run build && npm run build:server
+# Build the application
+RUN npm run build
 
-# Estágio de produção com Node.js
-FROM node:18-alpine
+# Production stage
+FROM nginx:alpine
 
-# Instalar dependências do sistema para Puppeteer
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+# Copy built files to nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Definir diretório de trabalho
-WORKDIR /app
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Criar usuário não-root
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001 -G nodejs
-
-# Copiar package.json e instalar apenas dependências de produção
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
-
-# Copiar arquivos buildados do estágio anterior
-COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nextjs:nodejs /app/src/server ./src/server
-
-# Configurar Puppeteer para usar Chromium instalado
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-# Mudar para usuário não-root
-USER nextjs
-
-# Expor porta 80
+# Expose port 80
 EXPOSE 80
 
-# Comando para iniciar o servidor
-CMD ["node", "dist/server/server.js"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
