@@ -13,8 +13,8 @@ RUN npm ci
 # Copiar código fonte
 COPY . .
 
-# Build da aplicação React
-RUN npm run build
+# Build da aplicação React e servidor
+RUN npm run build && npm run build:server
 
 # Estágio de produção com Node.js
 FROM node:18-alpine
@@ -32,15 +32,15 @@ RUN apk add --no-cache \
 # Definir diretório de trabalho
 WORKDIR /app
 
-# Criar usuário não-root ANTES de copiar arquivos
+# Criar usuário não-root
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001 -G nodejs
 
 # Copiar package.json e instalar apenas dependências de produção
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Copiar arquivos buildados e código do servidor com permissões corretas
+# Copiar arquivos buildados do estágio anterior
 COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nextjs:nodejs /app/src/server ./src/server
 
