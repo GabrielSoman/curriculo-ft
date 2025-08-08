@@ -26,27 +26,20 @@ RUN echo "=== Build output ===" && ls -la dist/ || echo "Build failed - no dist 
 # Production stage
 FROM node:18-alpine
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
-
 # Create app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm install --omit=dev && npm cache clean --force
+# Create non-root user first
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Copy server files
+# Copy server files and node_modules from builder
 COPY --from=builder /app/src/server ./src/server
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 # Change ownership of the app directory
 RUN chown -R nextjs:nodejs /app
@@ -57,9 +50,6 @@ ENV PORT=80
 
 # Expose port
 EXPOSE 80
-
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
 
 # Start the server
 CMD ["npm", "start"]
