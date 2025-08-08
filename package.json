@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:80": "vite --port 80 --host",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --port 80 --host"
   },
   "dependencies": {
     "react": "^18.2.0",
