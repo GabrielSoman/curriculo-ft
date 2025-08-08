@@ -6,7 +6,8 @@ README.md
 .env
 .nyc_output
 coverage
-.nyc_output
 .vscode
 .idea
 *.log
+dist
+.bolt
