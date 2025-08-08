@@ -2,14 +2,14 @@
   "name": "resume-generator",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:80": "vite --port 80 --host",
-    "easypanel": "npm install && npm run build && node dist/server/server.js",
-    "server:dev": "npm run build && npm run build:server && node --watch dist/server/server.js",
-    "build": "npx vite build && npm run build:server",
+    "build": "tsc && vite build",
     "build:server": "tsc -p tsconfig.server.json",
     "preview": "vite preview --port 80 --host",
+    "easypanel": "npm install && npm run build && npm run build:server && node dist/server/server.js",
     "start": "npm run easypanel"
   },
   "dependencies": {

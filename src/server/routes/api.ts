@@ -1,6 +1,6 @@
 import express from 'express';
-import { generatePDF } from '../services/pdfService';
-import { validateCurriculumData } from '../middleware/validation';
+import { generatePDF } from '../services/pdfService.js';
+import { validateCurriculumData } from '../middleware/validation.js';
 
 const router = express.Router();
 
