@@ -483,8 +483,19 @@ function App() {
                         </div>
                         
                         <div className="text-center mb-6">
-                          <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
-                            <User className="w-12 h-12 text-white" />
+                          <div className="w-24 h-24 bg-gradient-to-br from-white/30 to-white/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/40 relative overflow-hidden">
+                            {/* Padrão geométrico */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-16 h-16 relative">
+                                <div className="absolute inset-0 bg-white/40 rounded-full"></div>
+                                <div className="absolute top-2 left-2 w-12 h-12 bg-white/30 rounded-full"></div>
+                                <div className="absolute top-4 left-4 w-8 h-8 bg-white/50 rounded-full"></div>
+                                <div className="absolute top-6 left-6 w-4 h-4 bg-white/70 rounded-full"></div>
+                                <div className="absolute top-1 right-1 w-3 h-3 bg-white/60 rotate-45 rounded-sm"></div>
+                                <div className="absolute bottom-1 left-1 w-3 h-3 bg-white/60 rotate-45 rounded-sm"></div>
+                                <div className="absolute bottom-1 right-1 w-2 h-2 bg-white/80 rounded-full"></div>
+                              </div>
+                            </div>
                           </div>
                           <h1 className="text-xl font-bold mb-2 tracking-wide">{formData.nome || 'Seu Nome'}</h1>
                         </div>
@@ -541,7 +552,7 @@ function App() {
                         <div className="space-y-6">
                           {formData.escolaridade && (
                             <div>
-                              <h3 className="text-lg font-bold text-gray-800 mb-3 border-b-3 border-gradient-to-r from-blue-600 to-purple-600 pb-2 relative">
+                              <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
                                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EDUCAÇÃO</span>
                                 <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
@@ -554,7 +565,7 @@ function App() {
 
                           {formData.experiencia && (
                             <div>
-                              <h3 className="text-lg font-bold text-gray-800 mb-3 relative">
+                              <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
                                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EXPERIÊNCIA PROFISSIONAL</span>
                                 <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
@@ -566,7 +577,7 @@ function App() {
 
                           {formData.cursos && (
                             <div>
-                              <h3 className="text-lg font-bold text-gray-800 mb-3 relative">
+                              <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
                                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">CURSOS E CERTIFICAÇÕES</span>
                                 <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
