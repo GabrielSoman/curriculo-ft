@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { FileText, Download, User, Mail, Phone, MapPin, GraduationCap, Briefcase, Award, Clock } from 'lucide-react';
 import CurriculumPreview from './components/CurriculumPreview';
 import ApiEndpoint from './components/ApiEndpoint';
@@ -59,6 +60,29 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [activeTab, setActiveTab] = useState<'form' | 'api'>('form');
+  const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+  // Verificar status da API N8N
+  useEffect(() => {
+    const checkApiStatus = async () => {
+      try {
+        const response = await fetch('/api/health');
+        if (response.ok) {
+          setApiStatus('online');
+        } else {
+          setApiStatus('offline');
+        }
+      } catch (error) {
+        setApiStatus('offline');
+      }
+    };
+
+    checkApiStatus();
+    // Verificar a cada 30 segundos
+    const interval = setInterval(checkApiStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -470,6 +494,36 @@ function App() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Aviso temporário do status da API N8N */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className={`px-4 py-2 text-center text-sm font-medium transition-all duration-300 ${
+          apiStatus === 'online' 
+            ? 'bg-green-600 text-white' 
+            : apiStatus === 'offline'
+            ? 'bg-red-600 text-white'
+            : 'bg-yellow-600 text-white'
+        }`}>
+          {apiStatus === 'checking' && (
+            <span className="flex items-center justify-center space-x-2">
+              <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Verificando API N8N...</span>
+            </span>
+          )}
+          {apiStatus === 'online' && (
+            <span className="flex items-center justify-center space-x-2">
+              <div className="w-3 h-3 bg-white rounded-full"></div>
+              <span>✅ API N8N Online - Endpoint: POST /api/generate-pdf</span>
+            </span>
+          )}
+          {apiStatus === 'offline' && (
+            <span className="flex items-center justify-center space-x-2">
+              <div className="w-3 h-3 bg-white rounded-full opacity-50"></div>
+              <span>❌ API N8N Offline - Verifique o servidor backend</span>
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
