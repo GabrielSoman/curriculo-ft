@@ -81,8 +81,6 @@ function App() {
     // Verificar a cada 30 segundos
     const interval = setInterval(checkApiStatus, 30000);
     return () => clearInterval(interval);
-  }, []);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
