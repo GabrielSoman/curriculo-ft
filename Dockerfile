@@ -1,24 +1,16 @@
 # Build stage
-FROM node:18-alpine as builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install all dependencies (including dev dependencies for build)
 RUN npm install
 
 # Copy source code
-COPY index.html ./
-COPY src ./src
-COPY public ./public
-COPY vite.config.ts ./
-COPY tsconfig.json ./
-COPY tsconfig.app.json ./
-COPY tsconfig.node.json ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
+COPY . .
 
 # Build the application
 RUN npm run build
@@ -48,12 +40,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies
+# Install only production dependencies
 RUN npm install --omit=dev && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/server ./src/server
+
+# Copy server files
+COPY src/server ./src/server
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -63,6 +57,9 @@ RUN adduser -S nextjs -u 1001
 RUN chown -R nextjs:nodejs /app
 USER nextjs
 
+# Set port environment variable
+ENV PORT=80
+
 # Expose port
 EXPOSE 80
 
@@ -70,3 +67,4 @@ EXPOSE 80
 ENTRYPOINT ["dumb-init", "--"]
 
 # Start the server
+CMD ["npm", "start"]

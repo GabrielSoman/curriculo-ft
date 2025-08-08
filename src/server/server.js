@@ -5,16 +5,15 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Basic middleware
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname, '../dist')));
 
 // Função para converter dados do N8N para formato interno
 function convertN8NData(n8nData) {
@@ -418,6 +417,9 @@ app.get('/api/status', (req, res) => {
     files: buildExists ? fs.readdirSync(distPath) : []
   });
 });
+
+// Static files middleware (after API routes)
+app.use(express.static(path.join(__dirname, '../dist')));
 
 // Servir arquivos estáticos do React
 app.get('*', (req, res) => {
