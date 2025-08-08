@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileText, Download, User, Mail, Phone, MapPin, GraduationCap, Briefcase, Award, Clock } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import ApiEndpoint from './components/ApiEndpoint';
 
 interface FormData {
   // Dados Pessoais
@@ -61,6 +62,7 @@ function App() {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [activeTab, setActiveTab] = useState<'form' | 'api'>('form');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -166,7 +168,32 @@ function App() {
                 <p className="text-sm text-gray-600">Crie seu currículo profissional em minutos</p>
               </div>
             </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setActiveTab('form')}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'form'
+                      ? 'bg-white text-teal-800 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Formulário
+                </button>
+                <button
+                  onClick={() => setActiveTab('api')}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'api'
+                      ? 'bg-white text-teal-800 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  API JSON
+                </button>
+              </div>
             <div className="flex space-x-3">
+              {activeTab === 'form' && (
+                <>
               <button
                 onClick={preencherDadosExemplo}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm font-medium"
@@ -187,12 +214,42 @@ function App() {
                 <Download className="w-4 h-4" />
                 <span>{isGenerating ? 'Gerando...' : 'Baixar PDF'}</span>
               </button>
+                </>
+              )}
+            </div>
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === 'api' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <ApiEndpoint />
+            <div className="bg-gray-50 rounded-xl p-8 text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Como usar a API</h3>
+              <div className="text-left space-y-4 text-sm text-gray-600">
+                <div>
+                  <h4 className="font-medium text-gray-900">1. Prepare o JSON</h4>
+                  <p>Monte um objeto JSON com os dados do currículo</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">2. Cole no campo</h4>
+                  <p>Insira o JSON na área de texto ao lado</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">3. Gere o PDF</h4>
+                  <p>Clique em "Gerar PDF do JSON" e o download iniciará automaticamente</p>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg mt-4">
+                  <p className="text-blue-800 text-xs">
+                    <strong>Dica:</strong> Use o botão "Carregar Exemplo" para ver a estrutura completa do JSON
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Formulário */}
           <div className="space-y-6">
@@ -601,6 +658,7 @@ function App() {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
