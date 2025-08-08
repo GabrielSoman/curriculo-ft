@@ -125,20 +125,10 @@ function App() {
       const pdf = new jsPDF('p', 'mm', 'a4');
       
       const imgWidth = 210;
-      const pageHeight = 297;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
+      // Adicionar apenas uma página com a imagem ajustada
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
       const nomeArquivo = formData.nome ? 
         `Curriculo_${formData.nome.replace(/\s+/g, '_')}.pdf` : 
@@ -469,23 +459,23 @@ function App() {
               </div>
               
               {showPreview ? (
-                <div className="p-4 overflow-auto">
+                <div className="p-4 overflow-hidden">
                   <div 
                     id="curriculo-preview" 
-                    className="bg-white shadow-2xl mx-auto transform origin-top-left"
+                    className="bg-white shadow-2xl mx-auto transform origin-top-left overflow-hidden"
                     style={{ 
                       width: '210mm', 
-                      minHeight: '297mm', 
+                      height: '297mm', 
                       fontSize: '11px', 
                       lineHeight: '1.5', 
                       fontFamily: 'system-ui, -apple-system, sans-serif',
-                      scale: 'min(calc(100vw / 210mm), calc((100vh - 200px) / 297mm), 0.6)',
+                      scale: 'min(calc(100vw / 210mm), calc((100vh - 200px) / 297mm), 0.5)',
                       transformOrigin: 'top left'
                     }}
                   >
-                    <div className="flex" style={{ minHeight: '297mm' }}>
+                    <div className="flex h-full">
                       {/* Sidebar */}
-                      <div className="w-1/3 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-900 text-white p-8 relative overflow-hidden">
+                      <div className="w-1/3 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-900 text-white p-6 relative overflow-hidden">
                         {/* Background Pattern */}
                         <div className="absolute inset-0 opacity-10">
                           <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
@@ -493,15 +483,15 @@ function App() {
                         </div>
                         
                         <div className="text-center mb-6">
-                          <div className="w-28 h-28 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
-                            <User className="w-14 h-14 text-white" />
+                          <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
+                            <User className="w-12 h-12 text-white" />
                           </div>
-                          <h1 className="text-2xl font-bold mb-2 tracking-wide">{formData.nome || 'Seu Nome'}</h1>
+                          <h1 className="text-xl font-bold mb-2 tracking-wide">{formData.nome || 'Seu Nome'}</h1>
                         </div>
 
-                        <div className="space-y-8 relative z-10">
+                        <div className="space-y-6 relative z-10">
                           <div>
-                            <h3 className="text-sm font-bold mb-4 border-b-2 border-white/40 pb-2 tracking-widest">CONTATO</h3>
+                            <h3 className="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">CONTATO</h3>
                             <div className="space-y-3 text-xs">
                               {formData.email && (
                                 <div className="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
@@ -529,7 +519,7 @@ function App() {
                           </div>
 
                           <div>
-                            <h3 className="text-sm font-bold mb-4 border-b-2 border-white/40 pb-2 tracking-widest">DADOS PESSOAIS</h3>
+                            <h3 className="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DADOS PESSOAIS</h3>
                             <div className="space-y-2 text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
                               {formData.cpf && <div className="text-white/90"><strong className="text-blue-200">CPF:</strong> {formData.cpf}</div>}
                               {formData.rg && <div className="text-white/90"><strong className="text-blue-200">RG:</strong> {formData.rg}</div>}
@@ -538,7 +528,7 @@ function App() {
                           </div>
 
                           <div>
-                            <h3 className="text-sm font-bold mb-4 border-b-2 border-white/40 pb-2 tracking-widest">DISPONIBILIDADE</h3>
+                            <h3 className="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DISPONIBILIDADE</h3>
                             <div className="text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
                               <div className="text-white/90 font-medium">{getTurnosDisponiveis()}</div>
                             </div>
@@ -547,16 +537,16 @@ function App() {
                       </div>
 
                       {/* Conteúdo Principal */}
-                      <div className="w-2/3 p-8 bg-gradient-to-br from-gray-50 to-white">
-                        <div className="space-y-8">
+                      <div className="w-2/3 p-6 bg-gradient-to-br from-gray-50 to-white">
+                        <div className="space-y-6">
                           {formData.escolaridade && (
                             <div>
-                              <h3 className="text-xl font-bold text-gray-800 mb-4 border-b-3 border-gradient-to-r from-blue-600 to-purple-600 pb-2 relative">
+                              <h3 className="text-lg font-bold text-gray-800 mb-3 border-b-3 border-gradient-to-r from-blue-600 to-purple-600 pb-2 relative">
                                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EDUCAÇÃO</span>
-                                <div className="absolute bottom-0 left-0 w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
-                              <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
-                                <div className="font-bold text-gray-800 text-base">{formData.escolaridade}</div>
+                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
+                                <div className="font-bold text-gray-800 text-sm">{formData.escolaridade}</div>
                                 {formData.instituicao && <div className="text-gray-600 mt-1 font-medium">{formData.instituicao}</div>}
                               </div>
                             </div>
@@ -564,11 +554,11 @@ function App() {
 
                           {formData.experiencia && (
                             <div>
-                              <h3 className="text-xl font-bold text-gray-800 mb-4 relative">
+                              <h3 className="text-lg font-bold text-gray-800 mb-3 relative">
                                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EXPERIÊNCIA PROFISSIONAL</span>
-                                <div className="absolute bottom-0 left-0 w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
-                              <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-green-500">
                                 <div className="text-sm whitespace-pre-line text-gray-700 leading-relaxed">{formData.experiencia}</div>
                               </div>
                             </div>
@@ -576,11 +566,11 @@ function App() {
 
                           {formData.cursos && (
                             <div>
-                              <h3 className="text-xl font-bold text-gray-800 mb-4 relative">
+                              <h3 className="text-lg font-bold text-gray-800 mb-3 relative">
                                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">CURSOS E CERTIFICAÇÕES</span>
-                                <div className="absolute bottom-0 left-0 w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
-                              <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-500">
+                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-purple-500">
                                 <div className="text-sm whitespace-pre-line text-gray-700 leading-relaxed">{formData.cursos}</div>
                               </div>
                             </div>
