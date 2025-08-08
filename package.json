@@ -2,7 +2,6 @@
   "name": "resume-generator",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:80": "vite --port 80 --host",
