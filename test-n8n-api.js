@@ -17,10 +17,10 @@ async function testN8NAPI() {
 
   try {
     console.log('🧪 Testando API N8N PDF...');
-    console.log('📡 URL:', 'http://localhost:80/api/n8n-pdf');
+    console.log('📡 URL:', 'http://localhost:80/api/generate-pdf');
     console.log('📋 Dados:', JSON.stringify(testData, null, 2));
 
-    const response = await fetch('http://localhost:80/api/n8n-pdf', {
+    const response = await fetch('http://localhost:80/api/generate-pdf', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
