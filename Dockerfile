@@ -3,7 +3,7 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better caching
 COPY package*.json ./
 
 # Install all dependencies (including dev dependencies for build)
@@ -12,15 +12,16 @@ RUN npm install
 # Copy all source files
 COPY . .
 
-# List files for debugging
-RUN ls -la
-RUN ls -la src/
+# Debug: List files to verify structure
+RUN echo "=== Files in /app ===" && ls -la
+RUN echo "=== Checking index.html ===" && ls -la index.html || echo "index.html not found!"
+RUN echo "=== Files in src ===" && ls -la src/ || echo "src directory not found!"
 
 # Build the application
 RUN npm run build
 
 # Verify build output
-RUN ls -la dist/ || echo "Build failed - no dist directory"
+RUN echo "=== Build output ===" && ls -la dist/ || echo "Build failed - no dist directory"
 
 # Production stage
 FROM node:18-alpine
@@ -41,7 +42,7 @@ RUN npm install --omit=dev && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 
 # Copy server files
-COPY src/server ./src/server
+COPY --from=builder /app/src/server ./src/server
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
