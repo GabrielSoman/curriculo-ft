@@ -469,8 +469,20 @@ function App() {
               </div>
               
               {showPreview ? (
-                <div className="p-6">
-                  <div id="curriculo-preview" className="bg-white shadow-2xl" style={{ width: '210mm', minHeight: '297mm', margin: '0 auto', fontSize: '11px', lineHeight: '1.5', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                <div className="p-4 overflow-auto">
+                  <div 
+                    id="curriculo-preview" 
+                    className="bg-white shadow-2xl mx-auto transform origin-top-left"
+                    style={{ 
+                      width: '210mm', 
+                      minHeight: '297mm', 
+                      fontSize: '11px', 
+                      lineHeight: '1.5', 
+                      fontFamily: 'system-ui, -apple-system, sans-serif',
+                      scale: 'min(calc(100vw / 210mm), calc((100vh - 200px) / 297mm), 0.6)',
+                      transformOrigin: 'top left'
+                    }}
+                  >
                     <div className="flex" style={{ minHeight: '297mm' }}>
                       {/* Sidebar */}
                       <div className="w-1/3 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-900 text-white p-8 relative overflow-hidden">
