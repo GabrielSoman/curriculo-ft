@@ -89,11 +89,15 @@ function generateResumeHTML(data) {
 
         .geometric-header {
             height: 80px;
+            width: 100%;
             margin: 0 auto 30px;
             position: relative;
             overflow: hidden;
-            background: rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
             border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .geometric-header::before {
@@ -125,10 +129,11 @@ function generateResumeHTML(data) {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.2);
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.3);
             clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            z-index: 2;
         }
 
         .profile-name {
