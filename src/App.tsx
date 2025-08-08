@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { FileText, Download, User, Mail, Phone, MapPin, GraduationCap, Briefcase, Award, Clock } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import CurriculumPreview from './components/CurriculumPreview';
 import ApiEndpoint from './components/ApiEndpoint';
+import { downloadPDF, generatePDFFromElement } from './utils/pdfGenerator';
 
 interface FormData {
   // Dados Pessoais
@@ -96,80 +96,28 @@ function App() {
     setShowPreview(true);
   };
 
-  // Função para baixar via API (mesma que o backend usa)
-  const baixarViaAPI = async () => {
-    setIsGenerating(true);
-    
-    try {
-      const response = await fetch('/api/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erro na API: ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Curriculo_${formData.nome.replace(/\s+/g, '_')}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-    } catch (error) {
-      console.error('Erro ao gerar PDF via API:', error);
-      alert('Erro ao gerar PDF via API. Tentando método alternativo...');
-      
-      // Fallback para método local
-      await baixarCurriculoLocal();
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  // Método local como fallback
-  const baixarCurriculoLocal = async () => {
+  // Função principal para baixar PDF (usa o motor unificado)
+  const baixarCurriculo = async () => {
     if (!showPreview) {
       alert('Por favor, visualize o currículo primeiro!');
       return;
     }
 
+    if (!formData.nome) {
+      alert('Por favor, preencha pelo menos o nome!');
+      return;
+    }
+
+    setIsGenerating(true);
+    
     try {
-      const element = document.getElementById('curriculo-preview');
-      if (!element) {
-        throw new Error('Elemento de pré-visualização não encontrado');
-      }
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-      const nomeArquivo = formData.nome ? 
-        `Curriculo_${formData.nome.replace(/\s+/g, '_')}.pdf` : 
-        'Curriculo.pdf';
-      
-      pdf.save(nomeArquivo);
+      const fileName = `Curriculo_${formData.nome.replace(/\s+/g, '_')}.pdf`;
+      await downloadPDF('curriculo-preview', fileName);
     } catch (error) {
-      console.error('Erro ao gerar PDF local:', error);
+      console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar o PDF. Tente novamente.');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -227,8 +175,8 @@ function App() {
                       Visualizar
                     </button>
                     <button
-                      onClick={baixarViaAPI}
-                      disabled={isGenerating || !formData.nome}
+                      onClick={baixarCurriculo}
+                      disabled={isGenerating || !formData.nome || !showPreview}
                       className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-500 text-white rounded-lg hover:from-cyan-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium flex items-center space-x-2"
                     >
                       <Download className="w-4 h-4" />
@@ -263,7 +211,7 @@ function App() {
                 </div>
                 <div className="bg-blue-50 p-3 rounded-lg mt-4">
                   <p className="text-blue-800 text-xs">
-                    <strong>Dica:</strong> Use o botão "Carregar Exemplo" para ver a estrutura completa do JSON
+                    <strong>Motor Unificado:</strong> A API usa o mesmo sistema de geração que a interface web
                   </p>
                 </div>
               </div>
@@ -509,136 +457,7 @@ function App() {
                 
                 {showPreview ? (
                   <div className="p-4 overflow-hidden">
-                    <div 
-                      id="curriculo-preview" 
-                      className="bg-white shadow-2xl mx-auto transform origin-top-left overflow-hidden"
-                      style={{ 
-                        width: '210mm', 
-                        height: '297mm', 
-                        fontSize: '11px', 
-                        lineHeight: '1.5', 
-                        fontFamily: 'system-ui, -apple-system, sans-serif',
-                        scale: 'min(calc(100vw / 210mm), calc((100vh - 200px) / 297mm), 0.5)',
-                        transformOrigin: 'top left'
-                      }}
-                    >
-                      <div className="flex h-full">
-                        {/* Sidebar */}
-                        <div className="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden">
-                          {/* Background Pattern */}
-                          <div className="absolute inset-0 opacity-10">
-                            <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
-                            <div className="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12"></div>
-                          </div>
-                          
-                          <div className="text-center mb-6">
-                            <div className="w-24 h-24 bg-gradient-to-br from-yellow-400/30 to-white/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/40 relative overflow-hidden">
-                              {/* Padrão geométrico */}
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-16 h-16 relative">
-                                  <div className="absolute inset-0 bg-yellow-400/40 rounded-full"></div>
-                                  <div className="absolute top-2 left-2 w-12 h-12 bg-yellow-400/30 rounded-full"></div>
-                                  <div className="absolute top-4 left-4 w-8 h-8 bg-yellow-400/50 rounded-full"></div>
-                                  <div className="absolute top-6 left-6 w-4 h-4 bg-yellow-400/70 rounded-full"></div>
-                                  <div className="absolute top-1 right-1 w-3 h-3 bg-yellow-400/60 rotate-45 rounded-sm"></div>
-                                  <div className="absolute bottom-1 left-1 w-3 h-3 bg-yellow-400/60 rotate-45 rounded-sm"></div>
-                                  <div className="absolute bottom-1 right-1 w-2 h-2 bg-yellow-400/80 rounded-full"></div>
-                                </div>
-                              </div>
-                            </div>
-                            <h1 className="text-xl font-bold mb-2 tracking-wide">{formData.nome || 'Seu Nome'}</h1>
-                          </div>
-
-                          <div className="space-y-6 relative z-10">
-                            <div>
-                              <h3 className="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">CONTATO</h3>
-                              <div className="space-y-3 text-xs">
-                                {formData.email && (
-                                  <div className="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                                    <Mail className="w-4 h-4 text-cyan-200" />
-                                    <span className="text-white/90">{formData.email}</span>
-                                  </div>
-                                )}
-                                {formData.telefone && (
-                                  <div className="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                                    <Phone className="w-4 h-4 text-yellow-300" />
-                                    <span className="text-white/90">{formData.telefone}</span>
-                                  </div>
-                                )}
-                                {formData.endereco && (
-                                  <div className="flex items-start space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                                    <MapPin className="w-4 h-4 mt-0.5 text-cyan-300" />
-                                    <div className="text-white/90">
-                                      <div className="font-medium">{formData.endereco}</div>
-                                      <div>{formData.cidade}, {formData.estado}</div>
-                                      <div className="text-white/70">{formData.cep}</div>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div>
-                              <h3 className="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DADOS PESSOAIS</h3>
-                              <div className="space-y-2 text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                                {formData.cpf && <div className="text-white/90"><strong className="text-cyan-200">CPF:</strong> {formData.cpf}</div>}
-                                {formData.rg && <div className="text-white/90"><strong className="text-cyan-200">RG:</strong> {formData.rg}</div>}
-                                {formData.nascimento && <div className="text-white/90"><strong className="text-cyan-200">Nascimento:</strong> {new Date(formData.nascimento).toLocaleDateString('pt-BR')}</div>}
-                              </div>
-                            </div>
-
-                            <div>
-                              <h3 className="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DISPONIBILIDADE</h3>
-                              <div className="text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                                <div className="text-white/90 font-medium">{formData.disponibilidade || 'Não informado'}</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Conteúdo Principal */}
-                        <div className="w-2/3 p-6 bg-gradient-to-br from-gray-50 to-white">
-                          <div className="space-y-6">
-                            {formData.escolaridade && (
-                              <div>
-                                <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                  <span className="text-teal-800 font-extrabold tracking-wide">EDUCAÇÃO</span>
-                                  <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
-                                </h3>
-                                <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-teal-800">
-                                  <div className="font-bold text-gray-800 text-sm">{formData.escolaridade}</div>
-                                  {formData.instituicao && <div className="text-gray-600 mt-1 font-medium">{formData.instituicao}</div>}
-                                </div>
-                              </div>
-                            )}
-
-                            {formData.experiencia && (
-                              <div>
-                                <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                  <span className="text-teal-800 font-extrabold tracking-wide">EXPERIÊNCIA PROFISSIONAL</span>
-                                  <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
-                                </h3>
-                                <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-cyan-600">
-                                  <div className="text-sm whitespace-pre-line text-gray-700 leading-relaxed">{formData.experiencia}</div>
-                                </div>
-                              </div>
-                            )}
-
-                            {formData.cursos && (
-                              <div>
-                                <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                  <span className="text-teal-800 font-extrabold tracking-wide">CURSOS E CERTIFICAÇÕES</span>
-                                  <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
-                                </h3>
-                                <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
-                                  <div className="text-sm whitespace-pre-line text-gray-700 leading-relaxed">{formData.cursos}</div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <CurriculumPreview data={formData} />
                   </div>
                 ) : (
                   <div className="p-12 text-center text-gray-500">
