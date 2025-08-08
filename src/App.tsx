@@ -470,40 +470,46 @@ function App() {
               
               {showPreview ? (
                 <div className="p-6">
-                  <div id="curriculo-preview" className="bg-white" style={{ width: '210mm', minHeight: '297mm', margin: '0 auto', fontSize: '12px', lineHeight: '1.4' }}>
-                    <div className="flex" style={{ height: '297mm' }}>
+                  <div id="curriculo-preview" className="bg-white shadow-2xl" style={{ width: '210mm', minHeight: '297mm', margin: '0 auto', fontSize: '11px', lineHeight: '1.5', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                    <div className="flex" style={{ minHeight: '297mm' }}>
                       {/* Sidebar */}
-                      <div className="w-1/3 bg-gradient-to-b from-blue-600 to-purple-600 text-white p-6">
+                      <div className="w-1/3 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-900 text-white p-8 relative overflow-hidden">
+                        {/* Background Pattern */}
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
+                          <div className="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12"></div>
+                        </div>
+                        
                         <div className="text-center mb-6">
-                          <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <User className="w-12 h-12 text-white" />
+                          <div className="w-28 h-28 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
+                            <User className="w-14 h-14 text-white" />
                           </div>
-                          <h1 className="text-xl font-bold mb-2">{formData.nome || 'Seu Nome'}</h1>
+                          <h1 className="text-2xl font-bold mb-2 tracking-wide">{formData.nome || 'Seu Nome'}</h1>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-8 relative z-10">
                           <div>
-                            <h3 className="text-sm font-bold mb-3 border-b border-white/30 pb-1">CONTATO</h3>
-                            <div className="space-y-2 text-xs">
+                            <h3 className="text-sm font-bold mb-4 border-b-2 border-white/40 pb-2 tracking-widest">CONTATO</h3>
+                            <div className="space-y-3 text-xs">
                               {formData.email && (
-                                <div className="flex items-center space-x-2">
-                                  <Mail className="w-3 h-3" />
-                                  <span>{formData.email}</span>
+                                <div className="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                  <Mail className="w-4 h-4 text-blue-200" />
+                                  <span className="text-white/90">{formData.email}</span>
                                 </div>
                               )}
                               {formData.telefone && (
-                                <div className="flex items-center space-x-2">
-                                  <Phone className="w-3 h-3" />
-                                  <span>{formData.telefone}</span>
+                                <div className="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                  <Phone className="w-4 h-4 text-green-200" />
+                                  <span className="text-white/90">{formData.telefone}</span>
                                 </div>
                               )}
                               {formData.endereco && (
-                                <div className="flex items-start space-x-2">
-                                  <MapPin className="w-3 h-3 mt-0.5" />
-                                  <div>
-                                    <div>{formData.endereco}</div>
+                                <div className="flex items-start space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                  <MapPin className="w-4 h-4 mt-0.5 text-red-200" />
+                                  <div className="text-white/90">
+                                    <div className="font-medium">{formData.endereco}</div>
                                     <div>{formData.cidade}, {formData.estado}</div>
-                                    <div>{formData.cep}</div>
+                                    <div className="text-white/70">{formData.cep}</div>
                                   </div>
                                 </div>
                               )}
@@ -511,45 +517,60 @@ function App() {
                           </div>
 
                           <div>
-                            <h3 className="text-sm font-bold mb-3 border-b border-white/30 pb-1">DADOS PESSOAIS</h3>
-                            <div className="space-y-1 text-xs">
-                              {formData.cpf && <div><strong>CPF:</strong> {formData.cpf}</div>}
-                              {formData.rg && <div><strong>RG:</strong> {formData.rg}</div>}
-                              {formData.nascimento && <div><strong>Nascimento:</strong> {new Date(formData.nascimento).toLocaleDateString('pt-BR')}</div>}
+                            <h3 className="text-sm font-bold mb-4 border-b-2 border-white/40 pb-2 tracking-widest">DADOS PESSOAIS</h3>
+                            <div className="space-y-2 text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                              {formData.cpf && <div className="text-white/90"><strong className="text-blue-200">CPF:</strong> {formData.cpf}</div>}
+                              {formData.rg && <div className="text-white/90"><strong className="text-blue-200">RG:</strong> {formData.rg}</div>}
+                              {formData.nascimento && <div className="text-white/90"><strong className="text-blue-200">Nascimento:</strong> {new Date(formData.nascimento).toLocaleDateString('pt-BR')}</div>}
                             </div>
                           </div>
 
                           <div>
-                            <h3 className="text-sm font-bold mb-3 border-b border-white/30 pb-1">DISPONIBILIDADE</h3>
-                            <div className="text-xs">{getTurnosDisponiveis()}</div>
+                            <h3 className="text-sm font-bold mb-4 border-b-2 border-white/40 pb-2 tracking-widest">DISPONIBILIDADE</h3>
+                            <div className="text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                              <div className="text-white/90 font-medium">{getTurnosDisponiveis()}</div>
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Conteúdo Principal */}
-                      <div className="w-2/3 p-6">
-                        <div className="space-y-6">
+                      <div className="w-2/3 p-8 bg-gradient-to-br from-gray-50 to-white">
+                        <div className="space-y-8">
                           {formData.escolaridade && (
                             <div>
-                              <h3 className="text-lg font-bold text-gray-800 mb-3 border-b-2 border-blue-600 pb-1">EDUCAÇÃO</h3>
-                              <div className="text-sm">
-                                <div className="font-semibold">{formData.escolaridade}</div>
-                                {formData.instituicao && <div className="text-gray-600">{formData.instituicao}</div>}
+                              <h3 className="text-xl font-bold text-gray-800 mb-4 border-b-3 border-gradient-to-r from-blue-600 to-purple-600 pb-2 relative">
+                                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EDUCAÇÃO</span>
+                                <div className="absolute bottom-0 left-0 w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                              </h3>
+                              <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+                                <div className="font-bold text-gray-800 text-base">{formData.escolaridade}</div>
+                                {formData.instituicao && <div className="text-gray-600 mt-1 font-medium">{formData.instituicao}</div>}
                               </div>
                             </div>
                           )}
 
                           {formData.experiencia && (
                             <div>
-                              <h3 className="text-lg font-bold text-gray-800 mb-3 border-b-2 border-blue-600 pb-1">EXPERIÊNCIA PROFISSIONAL</h3>
-                              <div className="text-sm whitespace-pre-line">{formData.experiencia}</div>
+                              <h3 className="text-xl font-bold text-gray-800 mb-4 relative">
+                                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EXPERIÊNCIA PROFISSIONAL</span>
+                                <div className="absolute bottom-0 left-0 w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                              </h3>
+                              <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+                                <div className="text-sm whitespace-pre-line text-gray-700 leading-relaxed">{formData.experiencia}</div>
+                              </div>
                             </div>
                           )}
 
                           {formData.cursos && (
                             <div>
-                              <h3 className="text-lg font-bold text-gray-800 mb-3 border-b-2 border-blue-600 pb-1">CURSOS E CERTIFICAÇÕES</h3>
-                              <div className="text-sm whitespace-pre-line">{formData.cursos}</div>
+                              <h3 className="text-xl font-bold text-gray-800 mb-4 relative">
+                                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">CURSOS E CERTIFICAÇÕES</span>
+                                <div className="absolute bottom-0 left-0 w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                              </h3>
+                              <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-500">
+                                <div className="text-sm whitespace-pre-line text-gray-700 leading-relaxed">{formData.cursos}</div>
+                              </div>
                             </div>
                           )}
                         </div>
