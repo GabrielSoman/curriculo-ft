@@ -1,20 +1,3 @@
-# Build stage
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install all dependencies (including dev dependencies for build)
-RUN npm install
-
-# Copy all source files
-COPY . .
-
-# Build the application
-RUN npm run build
-
 # Production stage
 FROM node:18-alpine
 
@@ -40,12 +23,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies
-RUN npm install --omit=dev && npm cache clean --force
+# Install dependencies
+RUN npm install && npm cache clean --force
 
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/server ./src/server
+# Copy server code
+COPY src/server ./src/server
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
