@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import { Buffer } from 'buffer';
 import { CurriculumData } from '../types/curriculum';
 
 export async function generatePDF(data: CurriculumData): Promise<Buffer> {
@@ -29,7 +30,7 @@ export async function generatePDF(data: CurriculumData): Promise<Buffer> {
     });
     
     // Configurações do PDF
-    const pdfBuffer = await page.pdf({
+    const pdfBuffer = Buffer.from(await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: {
@@ -38,7 +39,7 @@ export async function generatePDF(data: CurriculumData): Promise<Buffer> {
         bottom: '0mm',
         left: '0mm'
       }
-    });
+    }));
     
     return pdfBuffer;
     
