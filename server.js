@@ -278,26 +278,52 @@ function generateResumeHTML(data) {
         @media print {
             body {
                 background: white;
-                font-size: 12px;
+                font-size: 14px;
+                overflow: visible;
             }
             .resume-container {
                 box-shadow: none;
-                max-width: none;
+                width: 210mm;
+                height: auto;
                 margin: 0;
-                min-height: auto;
+                transform: none;
                 page-break-inside: avoid;
             }
             .sidebar {
-                width: 35%;
+                width: 35% !important;
                 page-break-inside: avoid;
             }
             .main-content {
-                width: 65%;
+                width: 65% !important;
                 page-break-inside: avoid;
             }
             .main-section {
                 page-break-inside: avoid;
-                margin-bottom: 25px;
+                margin-bottom: 30px;
+            }
+            .profile-name {
+                font-size: 28px !important;
+            }
+            .section-title {
+                font-size: 20px !important;
+            }
+            .main-section-title {
+                font-size: 24px !important;
+            }
+            .item-title {
+                font-size: 18px !important;
+            }
+            .item-subtitle {
+                font-size: 16px !important;
+            }
+            .item-description, .about-text {
+                font-size: 14px !important;
+            }
+            .contact-item {
+                font-size: 14px !important;
+            }
+            .skill-item {
+                font-size: 14px !important;
             }
             .geometric-header::before {
                 background: repeating-linear-gradient(
