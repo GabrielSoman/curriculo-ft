@@ -11,6 +11,57 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../dist')));
 
+// Função para converter dados do N8N para formato interno
+function convertN8NData(n8nData) {
+  // Se for array, pega o primeiro item
+  const data = Array.isArray(n8nData) ? n8nData[0]?.body : n8nData;
+  
+  if (!data) {
+    throw new Error('Dados não encontrados no formato esperado');
+  }
+
+  // Converter turnos de string para boolean
+  const turnos = data['disponibilidade-turno'] || '';
+  const turnoManha = turnos.toLowerCase().includes('manhã') || turnos.toLowerCase().includes('manha');
+  const turnoTarde = turnos.toLowerCase().includes('tarde');
+  const turnoNoite = turnos.toLowerCase().includes('noite');
+  const meioTurno = turnos.toLowerCase().includes('meio turno');
+
+  // Converter formato de data
+  let nascimentoFormatado = '';
+  if (data.nascimento) {
+    try {
+      // Converter de DD/MM/YYYY para YYYY-MM-DD
+      const [dia, mes, ano] = data.nascimento.split('/');
+      nascimentoFormatado = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+    } catch (error) {
+      console.warn('Erro ao converter data:', error);
+    }
+  }
+
+  return {
+    nome: data.nome || '',
+    cpf: data.cpf || '',
+    rg: data.rg || '',
+    telefone: data.telefone || '',
+    nascimento: nascimentoFormatado,
+    cep: data.cep || '',
+    endereco: data.endereco || '',
+    cidade: data.cidade || '',
+    estado: data.estado || '',
+    email: data['e-mail'] || data.email || '',
+    telefoneAlternativo: data['contato-alternativo'] || '',
+    escolaridade: data.escolaridade || '',
+    instituicao: data['escola-faculdade'] || '',
+    turnoManha: turnoManha,
+    turnoTarde: turnoTarde,
+    turnoNoite: turnoNoite,
+    meioTurno: meioTurno,
+    experiencia: data.experiencia || '',
+    cursos: data['cursos-extras'] || ''
+  };
+}
+
 // Função para gerar HTML do currículo
 function generateCurriculumHTML(data) {
   const getTurnosDisponiveis = () => {
@@ -18,6 +69,7 @@ function generateCurriculumHTML(data) {
     if (data.turnoManha) turnos.push('Manhã');
     if (data.turnoTarde) turnos.push('Tarde');
     if (data.turnoNoite) turnos.push('Noite');
+    if (data.meioTurno) turnos.push('Meio Turno');
     return turnos.length > 0 ? turnos.join(', ') : 'Não informado';
   };
 
@@ -274,7 +326,12 @@ function generateCurriculumHTML(data) {
 // Endpoint para gerar PDF via POST
 app.post('/api/generate-pdf', async (req, res) => {
   try {
-    const data = req.body;
+    console.log('Dados recebidos:', JSON.stringify(req.body, null, 2));
+    
+    // Converter dados do N8N para formato interno
+    const data = convertN8NData(req.body);
+    
+    console.log('Dados convertidos:', JSON.stringify(data, null, 2));
     
     // Validação básica
     if (!data.nome) {
@@ -328,6 +385,19 @@ app.post('/api/generate-pdf', async (req, res) => {
   }
 });
 
+// Endpoint de teste para verificar conversão
+app.post('/api/test-conversion', (req, res) => {
+  try {
+    const convertedData = convertN8NData(req.body);
+    res.json({
+      original: req.body,
+      converted: convertedData
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Servir arquivos estáticos do React
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
@@ -337,4 +407,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📄 Interface: http://localhost:${PORT}`);
   console.log(`🔗 API: POST http://localhost:${PORT}/api/generate-pdf`);
+  console.log(`🧪 Teste: POST http://localhost:${PORT}/api/test-conversion`);
 });
