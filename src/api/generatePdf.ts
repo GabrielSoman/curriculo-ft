@@ -24,9 +24,7 @@ export interface CurriculumData {
   instituicao?: string;
   
   // Disponibilidade
-  turnoManha?: boolean;
-  turnoTarde?: boolean;
-  turnoNoite?: boolean;
+  disponibilidade?: string;
   
   // Experiência
   experiencia?: string;
@@ -45,13 +43,6 @@ export const generatePdfFromJson = async (data: CurriculumData): Promise<Blob> =
   tempContainer.style.height = '297mm';
   
   // Função para obter turnos disponíveis
-  const getTurnosDisponiveis = () => {
-    const turnos = [];
-    if (data.turnoManha) turnos.push('Manhã');
-    if (data.turnoTarde) turnos.push('Tarde');
-    if (data.turnoNoite) turnos.push('Noite');
-    return turnos.length > 0 ? turnos.join(', ') : 'Não informado';
-  };
 
   // HTML do currículo
   tempContainer.innerHTML = `
@@ -155,7 +146,7 @@ export const generatePdfFromJson = async (data: CurriculumData): Promise<Blob> =
           <div style="margin-bottom: 24px;">
             <h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px; border-bottom: 2px solid rgba(255, 255, 255, 0.4); padding-bottom: 8px; letter-spacing: 0.1em;">DISPONIBILIDADE</h3>
             <div style="font-size: 12px; background: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; backdrop-filter: blur(4px);">
-              <div style="color: rgba(255, 255, 255, 0.9); font-weight: 500;">${getTurnosDisponiveis()}</div>
+              <div style="color: rgba(255, 255, 255, 0.9); font-weight: 500;">${data.disponibilidade || 'Não informado'}</div>
             </div>
           </div>
         </div>

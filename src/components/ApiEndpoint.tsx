@@ -21,9 +21,7 @@ const ApiEndpoint: React.FC = () => {
     telefoneAlternativo: '(11) 88888-8888',
     escolaridade: 'Ensino Superior Completo',
     instituicao: 'Universidade de São Paulo',
-    turnoManha: true,
-    turnoTarde: true,
-    turnoNoite: false,
+    disponibilidade: 'Manhã, Tarde',
     experiencia: 'Analista de Sistemas na Empresa XYZ (2018-2023)\n• Desenvolvimento de aplicações web\n• Manutenção de sistemas legados\n• Trabalho em equipe ágil\n\nEstagiário de TI na Empresa ABC (2017-2018)\n• Suporte técnico aos usuários\n• Instalação e configuração de software',
     cursos: 'Curso de React.js - 40h (2023)\nCertificação AWS Cloud Practitioner (2022)\nCurso de TypeScript - 30h (2021)\nInglês Intermediário - CCAA (2020)'
   };
@@ -141,7 +139,7 @@ const ApiEndpoint: React.FC = () => {
             <div><code className="bg-white px-1 rounded">endereco, cidade, estado, cep</code> - Endereço</div>
             <div><code className="bg-white px-1 rounded">cpf, rg, nascimento</code> - Dados pessoais</div>
             <div><code className="bg-white px-1 rounded">escolaridade, instituicao</code> - Educação</div>
-            <div><code className="bg-white px-1 rounded">turnoManha, turnoTarde, turnoNoite</code> - Disponibilidade (boolean)</div>
+            <div><code className="bg-white px-1 rounded">disponibilidade</code> - Turnos disponíveis (texto livre)</div>
             <div><code className="bg-white px-1 rounded">experiencia, cursos</code> - Textos longos</div>
           </div>
         </div>

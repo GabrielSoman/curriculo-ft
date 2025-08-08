@@ -20,13 +20,6 @@ function convertN8NData(n8nData) {
     throw new Error('Dados não encontrados no formato esperado');
   }
 
-  // Converter turnos de string para boolean
-  const turnos = data['disponibilidade-turno'] || '';
-  const turnoManha = turnos.toLowerCase().includes('manhã') || turnos.toLowerCase().includes('manha');
-  const turnoTarde = turnos.toLowerCase().includes('tarde');
-  const turnoNoite = turnos.toLowerCase().includes('noite');
-  const meioTurno = turnos.toLowerCase().includes('meio turno');
-
   // Converter formato de data
   let nascimentoFormatado = '';
   if (data.nascimento) {
@@ -53,10 +46,7 @@ function convertN8NData(n8nData) {
     telefoneAlternativo: data['contato-alternativo'] || '',
     escolaridade: data.escolaridade || '',
     instituicao: data['escola-faculdade'] || '',
-    turnoManha: turnoManha,
-    turnoTarde: turnoTarde,
-    turnoNoite: turnoNoite,
-    meioTurno: meioTurno,
+    disponibilidade: data['disponibilidade-turno'] || '',
     experiencia: data.experiencia || '',
     cursos: data['cursos-extras'] || ''
   };
@@ -64,15 +54,6 @@ function convertN8NData(n8nData) {
 
 // Função para gerar HTML do currículo
 function generateCurriculumHTML(data) {
-  const getTurnosDisponiveis = () => {
-    const turnos = [];
-    if (data.turnoManha) turnos.push('Manhã');
-    if (data.turnoTarde) turnos.push('Tarde');
-    if (data.turnoNoite) turnos.push('Noite');
-    if (data.meioTurno) turnos.push('Meio Turno');
-    return turnos.length > 0 ? turnos.join(', ') : 'Não informado';
-  };
-
   return `
     <!DOCTYPE html>
     <html>
@@ -284,7 +265,7 @@ function generateCurriculumHTML(data) {
         <div class="section">
           <h3>DISPONIBILIDADE</h3>
           <div class="data-box">
-            <div style="color: rgba(255, 255, 255, 0.9); font-weight: 500;">${getTurnosDisponiveis()}</div>
+            <div style="color: rgba(255, 255, 255, 0.9); font-weight: 500;">${data.disponibilidade || 'Não informado'}</div>
           </div>
         </div>
       </div>

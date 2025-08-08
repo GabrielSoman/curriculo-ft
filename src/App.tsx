@@ -27,9 +27,7 @@ interface FormData {
   instituicao: string;
   
   // Disponibilidade
-  turnoManha: boolean;
-  turnoTarde: boolean;
-  turnoNoite: boolean;
+  disponibilidade: string;
   
   // Experiência
   experiencia: string;
@@ -53,9 +51,7 @@ function App() {
     telefoneAlternativo: '',
     escolaridade: '',
     instituicao: '',
-    turnoManha: false,
-    turnoTarde: false,
-    turnoNoite: false,
+    disponibilidade: '',
     experiencia: '',
     cursos: ''
   });
@@ -90,9 +86,7 @@ function App() {
       telefoneAlternativo: '(11) 88888-8888',
       escolaridade: 'Ensino Superior Completo',
       instituicao: 'Universidade de São Paulo',
-      turnoManha: true,
-      turnoTarde: true,
-      turnoNoite: false,
+      disponibilidade: 'Manhã, Tarde',
       experiencia: 'Analista de Sistemas na Empresa XYZ (2018-2023)\n• Desenvolvimento de aplicações web\n• Manutenção de sistemas legados\n• Trabalho em equipe ágil\n\nEstagiário de TI na Empresa ABC (2017-2018)\n• Suporte técnico aos usuários\n• Instalação e configuração de software',
       cursos: 'Curso de React.js - 40h (2023)\nCertificação AWS Cloud Practitioner (2022)\nCurso de TypeScript - 30h (2021)\nInglês Intermediário - CCAA (2020)'
     });
@@ -145,13 +139,6 @@ function App() {
     }
   };
 
-  const getTurnosDisponiveis = () => {
-    const turnos = [];
-    if (formData.turnoManha) turnos.push('Manhã');
-    if (formData.turnoTarde) turnos.push('Tarde');
-    if (formData.turnoNoite) turnos.push('Noite');
-    return turnos.length > 0 ? turnos.join(', ') : 'Não informado';
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
@@ -408,21 +395,14 @@ function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Escolaridade</label>
-                  <select
+                  <input
+                    type="text"
                     name="escolaridade"
                     value={formData.escolaridade}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  >
-                    <option value="">Selecione...</option>
-                    <option value="Ensino Fundamental Incompleto">Ensino Fundamental Incompleto</option>
-                    <option value="Ensino Fundamental Completo">Ensino Fundamental Completo</option>
-                    <option value="Ensino Médio Incompleto">Ensino Médio Incompleto</option>
-                    <option value="Ensino Médio Completo">Ensino Médio Completo</option>
-                    <option value="Ensino Superior Incompleto">Ensino Superior Incompleto</option>
-                    <option value="Ensino Superior Completo">Ensino Superior Completo</option>
-                    <option value="Pós-graduação">Pós-graduação</option>
-                  </select>
+                    placeholder="Ex: Ensino Superior Completo, Técnico em..."
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Instituição</label>
@@ -443,37 +423,16 @@ function App() {
                 <Clock className="w-5 h-5 text-teal-800" />
                 <h2 className="text-lg font-semibold text-gray-900">Disponibilidade</h2>
               </div>
-              <div className="flex flex-wrap gap-4">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="turnoManha"
-                    checked={formData.turnoManha}
-                    onChange={handleInputChange}
-                    className="rounded border-gray-300 text-teal-800 focus:ring-teal-500"
-                  />
-                  <span className="text-sm text-gray-700">Manhã</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="turnoTarde"
-                    checked={formData.turnoTarde}
-                    onChange={handleInputChange}
-                    className="rounded border-gray-300 text-teal-800 focus:ring-teal-500"
-                  />
-                  <span className="text-sm text-gray-700">Tarde</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="turnoNoite"
-                    checked={formData.turnoNoite}
-                    onChange={handleInputChange}
-                    className="rounded border-gray-300 text-teal-800 focus:ring-teal-500"
-                  />
-                  <span className="text-sm text-gray-700">Noite</span>
-                </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Turnos Disponíveis</label>
+                <input
+                  type="text"
+                  name="disponibilidade"
+                  value={formData.disponibilidade}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Ex: Manhã, Tarde, Noite, Meio Turno"
+                />
               </div>
             </div>
 
@@ -598,7 +557,7 @@ function App() {
                           <div>
                             <h3 className="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DISPONIBILIDADE</h3>
                             <div className="text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                              <div className="text-white/90 font-medium">{getTurnosDisponiveis()}</div>
+                              <div className="text-white/90 font-medium">{formData.disponibilidade || 'Não informado'}</div>
                             </div>
                           </div>
                         </div>
