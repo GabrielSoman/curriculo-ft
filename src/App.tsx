@@ -553,7 +553,7 @@ function App() {
                           {formData.escolaridade && (
                             <div>
                               <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EDUCAÇÃO</span>
+                                <span className="text-blue-700 font-extrabold tracking-wide">EDUCAÇÃO</span>
                                 <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
                               <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
@@ -566,7 +566,7 @@ function App() {
                           {formData.experiencia && (
                             <div>
                               <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EXPERIÊNCIA PROFISSIONAL</span>
+                                <span className="text-blue-700 font-extrabold tracking-wide">EXPERIÊNCIA PROFISSIONAL</span>
                                 <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
                               <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-green-500">
@@ -578,7 +578,7 @@ function App() {
                           {formData.cursos && (
                             <div>
                               <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">CURSOS E CERTIFICAÇÕES</span>
+                                <span className="text-blue-700 font-extrabold tracking-wide">CURSOS E CERTIFICAÇÕES</span>
                                 <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                               </h3>
                               <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-purple-500">
