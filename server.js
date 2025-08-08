@@ -452,14 +452,6 @@ app.post('/api/gerar-curriculo', async (req, res) => {
         left: '15mm'
       },
       displayHeaderFooter: false
-      preferCSSPageSize: false,
-      margin: {
-        top: '15mm',
-        right: '15mm',
-        bottom: '15mm',
-        left: '15mm'
-      },
-      displayHeaderFooter: false
     });
     
     await browser.close();
