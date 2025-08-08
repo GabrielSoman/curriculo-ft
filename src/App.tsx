@@ -152,13 +152,13 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg">
+              <div className="bg-gradient-to-r from-teal-800 to-cyan-600 p-2 rounded-lg">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -175,14 +175,14 @@ function App() {
               </button>
               <button
                 onClick={visualizarCurriculo}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                className="px-4 py-2 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors duration-200 text-sm font-medium"
               >
                 Visualizar
               </button>
               <button
                 onClick={baixarCurriculo}
                 disabled={isGenerating || !showPreview}
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium flex items-center space-x-2"
+                className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-500 text-white rounded-lg hover:from-cyan-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium flex items-center space-x-2"
               >
                 <Download className="w-4 h-4" />
                 <span>{isGenerating ? 'Gerando...' : 'Baixar PDF'}</span>
@@ -198,7 +198,7 @@ function App() {
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center space-x-2 mb-4">
-                <User className="w-5 h-5 text-blue-600" />
+                <User className="w-5 h-5 text-teal-800" />
                 <h2 className="text-lg font-semibold text-gray-900">Dados Pessoais</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -209,7 +209,7 @@ function App() {
                     name="nome"
                     value={formData.nome}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="Seu nome completo"
                   />
                 </div>
@@ -220,7 +220,7 @@ function App() {
                     name="cpf"
                     value={formData.cpf}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="000.000.000-00"
                   />
                 </div>
@@ -231,7 +231,7 @@ function App() {
                     name="rg"
                     value={formData.rg}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="00.000.000-0"
                   />
                 </div>
@@ -242,7 +242,7 @@ function App() {
                     name="nascimento"
                     value={formData.nascimento}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -250,7 +250,7 @@ function App() {
 
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center space-x-2 mb-4">
-                <Mail className="w-5 h-5 text-blue-600" />
+                <Mail className="w-5 h-5 text-teal-800" />
                 <h2 className="text-lg font-semibold text-gray-900">Contato</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -261,7 +261,7 @@ function App() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="seu@email.com"
                   />
                 </div>
@@ -272,7 +272,7 @@ function App() {
                     name="telefone"
                     value={formData.telefone}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="(11) 99999-9999"
                   />
                 </div>
@@ -283,7 +283,7 @@ function App() {
                     name="telefoneAlternativo"
                     value={formData.telefoneAlternativo}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="(11) 88888-8888"
                   />
                 </div>
@@ -292,7 +292,7 @@ function App() {
 
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center space-x-2 mb-4">
-                <MapPin className="w-5 h-5 text-blue-600" />
+                <MapPin className="w-5 h-5 text-teal-800" />
                 <h2 className="text-lg font-semibold text-gray-900">Endereço</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -303,7 +303,7 @@ function App() {
                     name="cep"
                     value={formData.cep}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="00000-000"
                   />
                 </div>
@@ -314,7 +314,7 @@ function App() {
                     name="estado"
                     value={formData.estado}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="SP"
                   />
                 </div>
@@ -325,7 +325,7 @@ function App() {
                     name="cidade"
                     value={formData.cidade}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="São Paulo"
                   />
                 </div>
@@ -336,7 +336,7 @@ function App() {
                     name="endereco"
                     value={formData.endereco}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="Rua, número - bairro"
                   />
                 </div>
@@ -345,7 +345,7 @@ function App() {
 
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center space-x-2 mb-4">
-                <GraduationCap className="w-5 h-5 text-blue-600" />
+                <GraduationCap className="w-5 h-5 text-teal-800" />
                 <h2 className="text-lg font-semibold text-gray-900">Educação</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -355,7 +355,7 @@ function App() {
                     name="escolaridade"
                     value={formData.escolaridade}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   >
                     <option value="">Selecione...</option>
                     <option value="Ensino Fundamental Incompleto">Ensino Fundamental Incompleto</option>
@@ -374,7 +374,7 @@ function App() {
                     name="instituicao"
                     value={formData.instituicao}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="Nome da instituição"
                   />
                 </div>
@@ -383,7 +383,7 @@ function App() {
 
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center space-x-2 mb-4">
-                <Clock className="w-5 h-5 text-blue-600" />
+                <Clock className="w-5 h-5 text-teal-800" />
                 <h2 className="text-lg font-semibold text-gray-900">Disponibilidade</h2>
               </div>
               <div className="flex flex-wrap gap-4">
@@ -393,7 +393,7 @@ function App() {
                     name="turnoManha"
                     checked={formData.turnoManha}
                     onChange={handleInputChange}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-teal-800 focus:ring-teal-500"
                   />
                   <span className="text-sm text-gray-700">Manhã</span>
                 </label>
@@ -403,7 +403,7 @@ function App() {
                     name="turnoTarde"
                     checked={formData.turnoTarde}
                     onChange={handleInputChange}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-teal-800 focus:ring-teal-500"
                   />
                   <span className="text-sm text-gray-700">Tarde</span>
                 </label>
@@ -413,7 +413,7 @@ function App() {
                     name="turnoNoite"
                     checked={formData.turnoNoite}
                     onChange={handleInputChange}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-teal-800 focus:ring-teal-500"
                   />
                   <span className="text-sm text-gray-700">Noite</span>
                 </label>
@@ -422,7 +422,7 @@ function App() {
 
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center space-x-2 mb-4">
-                <Briefcase className="w-5 h-5 text-blue-600" />
+                <Briefcase className="w-5 h-5 text-teal-800" />
                 <h2 className="text-lg font-semibold text-gray-900">Experiência Profissional</h2>
               </div>
               <textarea
@@ -430,14 +430,14 @@ function App() {
                 value={formData.experiencia}
                 onChange={handleInputChange}
                 rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 placeholder="Descreva sua experiência profissional, cargos ocupados, empresas, período e principais atividades..."
               />
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center space-x-2 mb-4">
-                <Award className="w-5 h-5 text-blue-600" />
+                <Award className="w-5 h-5 text-teal-800" />
                 <h2 className="text-lg font-semibold text-gray-900">Cursos e Certificações</h2>
               </div>
               <textarea
@@ -445,7 +445,7 @@ function App() {
                 value={formData.cursos}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 placeholder="Liste seus cursos, certificações, workshops e outras qualificações..."
               />
             </div>
@@ -454,7 +454,7 @@ function App() {
           {/* Pré-visualização */}
           <div className="lg:sticky lg:top-8">
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+              <div className="bg-gradient-to-r from-teal-800 to-cyan-600 px-6 py-4">
                 <h2 className="text-lg font-semibold text-white">Pré-visualização</h2>
               </div>
               
@@ -475,7 +475,7 @@ function App() {
                   >
                     <div className="flex h-full">
                       {/* Sidebar */}
-                      <div className="w-1/3 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-900 text-white p-6 relative overflow-hidden">
+                      <div className="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden">
                         {/* Background Pattern */}
                         <div className="absolute inset-0 opacity-10">
                           <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
@@ -483,17 +483,17 @@ function App() {
                         </div>
                         
                         <div className="text-center mb-6">
-                          <div className="w-24 h-24 bg-gradient-to-br from-white/30 to-white/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/40 relative overflow-hidden">
+                          <div className="w-24 h-24 bg-gradient-to-br from-yellow-400/30 to-white/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/40 relative overflow-hidden">
                             {/* Padrão geométrico */}
                             <div className="absolute inset-0 flex items-center justify-center">
                               <div className="w-16 h-16 relative">
-                                <div className="absolute inset-0 bg-white/40 rounded-full"></div>
-                                <div className="absolute top-2 left-2 w-12 h-12 bg-white/30 rounded-full"></div>
-                                <div className="absolute top-4 left-4 w-8 h-8 bg-white/50 rounded-full"></div>
-                                <div className="absolute top-6 left-6 w-4 h-4 bg-white/70 rounded-full"></div>
-                                <div className="absolute top-1 right-1 w-3 h-3 bg-white/60 rotate-45 rounded-sm"></div>
-                                <div className="absolute bottom-1 left-1 w-3 h-3 bg-white/60 rotate-45 rounded-sm"></div>
-                                <div className="absolute bottom-1 right-1 w-2 h-2 bg-white/80 rounded-full"></div>
+                                <div className="absolute inset-0 bg-yellow-400/40 rounded-full"></div>
+                                <div className="absolute top-2 left-2 w-12 h-12 bg-yellow-400/30 rounded-full"></div>
+                                <div className="absolute top-4 left-4 w-8 h-8 bg-yellow-400/50 rounded-full"></div>
+                                <div className="absolute top-6 left-6 w-4 h-4 bg-yellow-400/70 rounded-full"></div>
+                                <div className="absolute top-1 right-1 w-3 h-3 bg-yellow-400/60 rotate-45 rounded-sm"></div>
+                                <div className="absolute bottom-1 left-1 w-3 h-3 bg-yellow-400/60 rotate-45 rounded-sm"></div>
+                                <div className="absolute bottom-1 right-1 w-2 h-2 bg-yellow-400/80 rounded-full"></div>
                               </div>
                             </div>
                           </div>
@@ -506,19 +506,19 @@ function App() {
                             <div className="space-y-3 text-xs">
                               {formData.email && (
                                 <div className="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                                  <Mail className="w-4 h-4 text-blue-200" />
+                                  <Mail className="w-4 h-4 text-cyan-200" />
                                   <span className="text-white/90">{formData.email}</span>
                                 </div>
                               )}
                               {formData.telefone && (
                                 <div className="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                                  <Phone className="w-4 h-4 text-green-200" />
+                                  <Phone className="w-4 h-4 text-yellow-300" />
                                   <span className="text-white/90">{formData.telefone}</span>
                                 </div>
                               )}
                               {formData.endereco && (
                                 <div className="flex items-start space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                                  <MapPin className="w-4 h-4 mt-0.5 text-red-200" />
+                                  <MapPin className="w-4 h-4 mt-0.5 text-cyan-300" />
                                   <div className="text-white/90">
                                     <div className="font-medium">{formData.endereco}</div>
                                     <div>{formData.cidade}, {formData.estado}</div>
@@ -532,9 +532,9 @@ function App() {
                           <div>
                             <h3 className="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DADOS PESSOAIS</h3>
                             <div className="space-y-2 text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                              {formData.cpf && <div className="text-white/90"><strong className="text-blue-200">CPF:</strong> {formData.cpf}</div>}
-                              {formData.rg && <div className="text-white/90"><strong className="text-blue-200">RG:</strong> {formData.rg}</div>}
-                              {formData.nascimento && <div className="text-white/90"><strong className="text-blue-200">Nascimento:</strong> {new Date(formData.nascimento).toLocaleDateString('pt-BR')}</div>}
+                              {formData.cpf && <div className="text-white/90"><strong className="text-cyan-200">CPF:</strong> {formData.cpf}</div>}
+                              {formData.rg && <div className="text-white/90"><strong className="text-cyan-200">RG:</strong> {formData.rg}</div>}
+                              {formData.nascimento && <div className="text-white/90"><strong className="text-cyan-200">Nascimento:</strong> {new Date(formData.nascimento).toLocaleDateString('pt-BR')}</div>}
                             </div>
                           </div>
 
@@ -553,10 +553,10 @@ function App() {
                           {formData.escolaridade && (
                             <div>
                               <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                <span className="text-blue-700 font-extrabold tracking-wide">EDUCAÇÃO</span>
-                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                                <span className="text-teal-800 font-extrabold tracking-wide">EDUCAÇÃO</span>
+                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
                               </h3>
-                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
+                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-teal-800">
                                 <div className="font-bold text-gray-800 text-sm">{formData.escolaridade}</div>
                                 {formData.instituicao && <div className="text-gray-600 mt-1 font-medium">{formData.instituicao}</div>}
                               </div>
@@ -566,10 +566,10 @@ function App() {
                           {formData.experiencia && (
                             <div>
                               <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                <span className="text-blue-700 font-extrabold tracking-wide">EXPERIÊNCIA PROFISSIONAL</span>
-                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                                <span className="text-teal-800 font-extrabold tracking-wide">EXPERIÊNCIA PROFISSIONAL</span>
+                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
                               </h3>
-                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-green-500">
+                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-cyan-600">
                                 <div className="text-sm whitespace-pre-line text-gray-700 leading-relaxed">{formData.experiencia}</div>
                               </div>
                             </div>
@@ -578,10 +578,10 @@ function App() {
                           {formData.cursos && (
                             <div>
                               <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                                <span className="text-blue-700 font-extrabold tracking-wide">CURSOS E CERTIFICAÇÕES</span>
-                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                                <span className="text-teal-800 font-extrabold tracking-wide">CURSOS E CERTIFICAÇÕES</span>
+                                <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
                               </h3>
-                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-purple-500">
+                              <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
                                 <div className="text-sm whitespace-pre-line text-gray-700 leading-relaxed">{formData.cursos}</div>
                               </div>
                             </div>
