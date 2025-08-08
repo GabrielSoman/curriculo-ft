@@ -1,4 +1,5 @@
-const fetch = require('node:fetch');
+import fetch from 'node:fetch';
+import { Buffer } from 'node:buffer';
 
 async function testN8NAPI() {
   const testData = {
