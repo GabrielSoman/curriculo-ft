@@ -57,44 +57,49 @@ function generateResumeHTML(data) {
 
         body {
             font-family: 'Arial', sans-serif;
-            background: #f5f5f5;
+            background: white;
             color: #333;
             line-height: 1.4;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
 
         .resume-container {
-            max-width: 1000px;
-            margin: 0 auto;
+            width: 100%;
+            height: 100vh;
             background: white;
             display: flex;
-            min-height: 100vh;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: none;
+            transform-origin: top left;
         }
 
         .sidebar {
-            width: 35%;
+            width: 300px;
+            min-width: 300px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 0;
             position: relative;
+            overflow: hidden;
         }
 
         .profile-section {
             background: rgba(255,255,255,0.1);
-            padding: 40px 30px;
+            padding: 20px 15px;
             text-align: center;
             border-radius: 0 0 50px 0;
             position: relative;
         }
 
         .geometric-header {
-            height: 80px;
+            height: 50px;
             width: 100%;
-            margin: 0 auto 30px;
+            margin: 0 auto 15px;
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
-            border-radius: 15px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -151,7 +156,7 @@ function generateResumeHTML(data) {
         }
 
         .sidebar-section {
-            padding: 30px;
+            padding: 15px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
@@ -171,20 +176,20 @@ function generateResumeHTML(data) {
         .contact-item {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
-            font-size: 14px;
+            margin-bottom: 10px;
+            font-size: 11px;
         }
 
         .contact-icon {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             background: rgba(255,255,255,0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 15px;
-            font-size: 10px;
+            margin-right: 10px;
+            font-size: 8px;
         }
 
         .skill-item {
@@ -208,16 +213,16 @@ function generateResumeHTML(data) {
         }
 
         .main-section-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             color: #667eea;
-            margin-bottom: 25px;
+            margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 1px;
             border-bottom: 3px solid #667eea;
             padding-bottom: 10px;
         }
-
+            font-size: 12px;
         .education-item, .experience-item {
             margin-bottom: 25px;
             position: relative;
@@ -236,9 +241,9 @@ function generateResumeHTML(data) {
         }
 
         .item-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            color: #333;
+            margin-bottom: 12px;
             margin-bottom: 5px;
         }
 
