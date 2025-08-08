@@ -1,14 +1,41 @@
 # 📄 Gerador de Currículos Automático
 
-Sistema completo para geração automática de currículos profissionais com interface web moderna.
+Sistema completo para geração automática de currículos profissionais com interface web moderna e API REST.
 
 ## 🚀 Funcionalidades
 
 - **Interface web responsiva** para preenchimento de dados
 - **Visualização em tempo real** do currículo
+## 🔗 API Endpoints
 - **Download automático** de PDF profissional
+### Gerar PDF via POST
+```bash
+POST /api/generate-pdf
+Content-Type: application/json
+- **API REST** para integração com N8N e outros sistemas
+{
+  "nome": "João Silva Santos",
+  "email": "joao@email.com",
+  "telefone": "(11) 99999-9999",
+  "endereco": "Rua das Flores, 123",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "escolaridade": "Ensino Superior Completo",
+  "disponibilidade": "Manhã, Tarde",
+  "experiencia": "Analista de Sistemas...",
+  "cursos": "React.js, TypeScript..."
+}
+```
 - **Design moderno** baseado em templates profissionais
+### Testar conversão de dados
+```bash
+POST /api/test-conversion
+```
 - **Tecnologia React + TypeScript**
+### Health Check
+```bash
+GET /api/health
+```
 
 ## 🛠️ Instalação e Uso
 
@@ -22,8 +49,20 @@ Sistema completo para geração automática de currículos profissionais com int
    npm run dev
    ```
 
-3. **Acesse a aplicação:**
+3. **Para produção:**
+   ```bash
+   npm run build
+   npm start
+   ```
+
+4. **Para EasyPanel:**
+   ```bash
+   npm run easypanel
+   ```
+
+5. **Acesse a aplicação:**
    - Interface Web: `http://localhost:5173`
+   - API: `http://localhost:80/api/generate-pdf`
 
 ## 🎨 Recursos do Design
 

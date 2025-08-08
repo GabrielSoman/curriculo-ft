@@ -2,19 +2,32 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 80;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // Função para converter dados do N8N para formato interno
 function convertN8NData(n8nData) {
   // Se for array, pega o primeiro item
-  const data = Array.isArray(n8nData) ? n8nData[0]?.body : n8nData;
+  let data;
+  
+  if (Array.isArray(n8nData)) {
+    data = n8nData[0]?.body || n8nData[0];
+  } else if (n8nData?.body) {
+    data = n8nData.body;
+  } else {
+    data = n8nData;
+  }
   
   if (!data) {
     throw new Error('Dados não encontrados no formato esperado');
@@ -47,8 +60,8 @@ function convertN8NData(n8nData) {
     escolaridade: data.escolaridade || '',
     instituicao: data['escola-faculdade'] || '',
     disponibilidade: data['disponibilidade-turno'] || '',
-    experiencia: data.experiencia || '',
-    cursos: data['cursos-extras'] || ''
+    experiencia: data.experiencia || data.experiencias || '',
+    cursos: data['cursos-extras'] || data.cursos || ''
   };
 }
 
@@ -333,7 +346,9 @@ app.post('/api/generate-pdf', async (req, res) => {
         '--no-first-run',
         '--no-zygote',
         '--single-process',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor'
       ]
     });
 
@@ -346,7 +361,8 @@ app.post('/api/generate-pdf', async (req, res) => {
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 }
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      preferCSSPageSize: true
     });
 
     await browser.close();
@@ -369,19 +385,48 @@ app.post('/api/generate-pdf', async (req, res) => {
 // Endpoint de teste para verificar conversão
 app.post('/api/test-conversion', (req, res) => {
   try {
+    console.log('Dados recebidos para teste:', JSON.stringify(req.body, null, 2));
     const convertedData = convertN8NData(req.body);
+    console.log('Dados convertidos:', JSON.stringify(convertedData, null, 2));
     res.json({
       original: req.body,
       converted: convertedData
     });
   } catch (error) {
+    console.error('Erro na conversão:', error);
     res.status(400).json({ error: error.message });
   }
 });
 
+// Endpoint de health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
+// Endpoint para verificar se o build existe
+app.get('/api/status', (req, res) => {
+  const distPath = path.join(__dirname, '../dist');
+  const buildExists = fs.existsSync(distPath);
+  
+  res.json({
+    buildExists,
+    distPath,
+    files: buildExists ? fs.readdirSync(distPath) : []
+  });
+});
+
 // Servir arquivos estáticos do React
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+  const indexPath = path.join(__dirname, '../dist/index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ error: 'Build não encontrado. Execute npm run build primeiro.' });
+  }
 });
 
 app.listen(PORT, '0.0.0.0', () => {

@@ -21,14 +21,14 @@ FROM node:18-alpine
 # Install Chromium and dependencies for Puppeteer
 RUN apk add --no-cache \
     chromium \
-    chromium-chromedriver \
     nss \
     freetype \
     freetype-dev \
     harfbuzz \
     ca-certificates \
     ttf-freefont \
-    font-noto-emoji
+    font-noto-emoji \
+    dumb-init
 
 # Tell Puppeteer to skip installing Chromium. We'll be using the installed package.
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
@@ -58,5 +58,7 @@ USER nextjs
 # Expose port
 EXPOSE 80
 
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
 # Start the server
-CMD ["node", "src/server/server.js"]
