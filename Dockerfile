@@ -9,11 +9,18 @@ COPY package*.json ./
 # Install all dependencies (including dev dependencies for build)
 RUN npm install
 
-# Copy source code
+# Copy all source files
 COPY . .
+
+# List files for debugging
+RUN ls -la
+RUN ls -la src/
 
 # Build the application
 RUN npm run build
+
+# Verify build output
+RUN ls -la dist/ || echo "Build failed - no dist directory"
 
 # Production stage
 FROM node:18-alpine

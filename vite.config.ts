@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  root: '.',
+  publicDir: 'public',
   server: {
     port: 80,
     host: true
@@ -15,6 +17,11 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'terser'
+    minify: 'terser',
+    rollupOptions: {
+      input: {
+        main: './index.html'
+      }
+    }
   }
 });
