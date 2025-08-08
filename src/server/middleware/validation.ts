@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { CurriculumData } from '../types/curriculum.js';
+import { CurriculumData } from '../types/curriculum';
 
 export function validateCurriculumData(req: Request, res: Response, next: NextFunction) {
   const data: CurriculumData = req.body;

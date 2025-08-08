@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { CurriculumData } from '../types/curriculum.js';
+import { CurriculumData } from '../types/curriculum';
 
 export async function generatePDF(data: CurriculumData): Promise<Buffer> {
   let browser;

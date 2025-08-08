@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import apiRoutes from './routes/api.js';
+import apiRoutes from './routes/api';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
