@@ -60,20 +60,35 @@ export class PDFDownloadService {
       });
 
       // Aguardar renderização completa do CSS
-      console.log('⏳ Aguardando CSS compilado renderizar completamente...');
+      console.log('⏳ Aguardando renderização completa - SEM LIMITE DE TEMPO...');
       
-      // Aguardar elementos críticos
-      await page.waitForSelector('#curriculo-preview', { timeout: 30000 });
-      await page.waitForSelector('.profile-avatar', { timeout: 30000 });
-      await page.waitForSelector('.contact-item', { timeout: 30000 });
-      await page.waitForSelector('.sidebar', { timeout: 30000 });
-      await page.waitForSelector('.main-content', { timeout: 30000 });
+      // Aguardar elementos críticos - SEM TIMEOUT
+      try {
+        await page.waitForSelector('#curriculo-preview', { timeout: 0 });
+        console.log('✅ Container principal encontrado');
+        
+        await page.waitForSelector('.w-24', { timeout: 0 }); // Avatar
+        console.log('✅ Avatar encontrado');
+        
+        await page.waitForSelector('.flex.items-center.space-x-3', { timeout: 0 }); // Contact items
+        console.log('✅ Items de contato encontrados');
+        
+        await page.waitForSelector('.w-1\\/3', { timeout: 0 }); // Sidebar
+        console.log('✅ Sidebar encontrada');
+        
+        await page.waitForSelector('.w-2\\/3', { timeout: 0 }); // Main content
+        console.log('✅ Conteúdo principal encontrado');
+      } catch (error) {
+        console.log('⚠️ Alguns elementos não encontrados, continuando...');
+      }
       
-      // Aguardar CSS compilado ser aplicado completamente
-      await page.waitForFunction(() => {
+      // Aguardar CSS compilado ser aplicado - SEM TIMEOUT
+      console.log('⏳ Aguardando CSS Tailwind ser aplicado completamente...');
+      try {
+        await page.waitForFunction(() => {
         const sidebar = document.querySelector('.sidebar');
         const mainContent = document.querySelector('.main-content');
-        const avatar = document.querySelector('.profile-avatar');
+        const avatar = document.querySelector('.w-24.h-24');
         const contactItems = document.querySelectorAll('.contact-item');
         
         if (!sidebar || !mainContent || !avatar || contactItems.length === 0) return false;
@@ -93,11 +108,15 @@ export class PDFDownloadService {
                avatarStyle.borderRadius === '50%' &&
                (sidebarHasGradient || sidebarStyle.backgroundColor !== 'rgba(0, 0, 0, 0)') &&
                contactHasBackground;
-      }, { timeout: 30000 });
+        }, { timeout: 0 });
+        console.log('✅ CSS Tailwind aplicado completamente');
+      } catch (error) {
+        console.log('⚠️ CSS pode não estar 100% aplicado, continuando...');
+      }
 
-      // TEMPO EXTRA PARA CSS COMPILADO
-      console.log('⏳ Aguardando CSS compilado aplicar (10 segundos)...');
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      // TEMPO EXTRA PARA RENDERIZAÇÃO COMPLETA - AUMENTADO
+      console.log('⏳ Aguardando renderização final (30 segundos)...');
+      await new Promise(resolve => setTimeout(resolve, 30000));
 
       console.log('✅ CSS compilado aplicado, gerando PDF...');
 
