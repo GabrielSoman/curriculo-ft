@@ -56,21 +56,39 @@ export class PDFDownloadService {
       // Carregar HTML
       await page.setContent(htmlContent, {
         waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 30000
+        timeout: 60000
       });
 
       // Aguardar renderização completa do CSS
       // Aguardar elementos básicos renderizarem
-      try {
-        await page.waitForSelector('#curriculo-preview', { timeout: 5000 });
-        await page.waitForSelector('.profile-avatar', { timeout: 3000 });
-        console.log('✅ Elementos básicos encontrados');
-      } catch (error) {
-        console.log('⚠️ Alguns elementos não encontrados, continuando...');
-      }
+      // AGUARDAR RENDERIZAÇÃO COMPLETA DO CSS TAILWIND
+      console.log('⏳ Aguardando CSS Tailwind renderizar completamente...');
+      
+      // Aguardar elementos críticos
+      await page.waitForSelector('#curriculo-preview', { timeout: 10000 });
+      await page.waitForSelector('.profile-avatar', { timeout: 10000 });
+      
+      // Aguardar CSS ser aplicado completamente
+      await page.waitForFunction(() => {
+        const sidebar = document.querySelector('.w-1\\/3');
+        const mainContent = document.querySelector('.w-2\\/3');
+        const avatar = document.querySelector('.profile-avatar');
+        
+        if (!sidebar || !mainContent || !avatar) return false;
+        
+        // Verificar se CSS foi aplicado
+        const sidebarStyle = window.getComputedStyle(sidebar);
+        const mainStyle = window.getComputedStyle(mainContent);
+        const avatarStyle = window.getComputedStyle(avatar);
+        
+        return sidebarStyle.width !== 'auto' && 
+               mainStyle.width !== 'auto' && 
+               avatarStyle.borderRadius === '50%';
+      }, { timeout: 15000 });
 
-      // Aguardar renderização dos estilos
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // TEMPO EXTRA PARA GARANTIR RENDERIZAÇÃO COMPLETA
+      console.log('⏳ Aguardando renderização final...');
+      await new Promise(resolve => setTimeout(resolve, 8000));
 
       console.log('⏳ Aguardando renderização completa...');
 

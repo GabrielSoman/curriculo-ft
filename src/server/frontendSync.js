@@ -66,18 +66,213 @@ export function generateSyncedHTML(data) {
             transform-origin: top left !important;
         }
         
-        /* GARANTIR GRADIENTES E CORES */
-        .bg-gradient-to-br {
-            background: linear-gradient(135deg, var(--tw-gradient-stops)) !important;
+        /* FORÇAR LAYOUT FLEX - CRÍTICO! */
+        .flex {
+            display: flex !important;
         }
         
-        .from-slate-800 { --tw-gradient-from: #1e293b !important; }
-        .via-teal-800 { --tw-gradient-via: #0f766e !important; }
-        .to-cyan-800 { --tw-gradient-to: #0891b2 !important; }
-        .from-gray-50 { --tw-gradient-from: #f9fafb !important; }
-        .to-white { --tw-gradient-to: #ffffff !important; }
-        .from-yellow-400\/30 { --tw-gradient-from: rgba(251, 191, 36, 0.3) !important; }
-        .to-white\/10 { --tw-gradient-to: rgba(255, 255, 255, 0.1) !important; }
+        .h-full {
+            height: 100% !important;
+        }
+        
+        .w-1\\/3 {
+            width: 33.333333% !important;
+            flex: none !important;
+        }
+        
+        .w-2\\/3 {
+            width: 66.666667% !important;
+            flex: none !important;
+        }
+        
+        /* SIDEBAR - FORÇAR ESTILO COMPLETO */
+        .bg-gradient-to-br.from-slate-800.via-teal-800.to-cyan-800 {
+            background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%) !important;
+        }
+        
+        .text-white {
+            color: white !important;
+        }
+        
+        .p-6 {
+            padding: 1.5rem !important;
+        }
+        
+        .relative {
+            position: relative !important;
+        }
+        
+        .overflow-hidden {
+            overflow: hidden !important;
+        }
+        
+        /* MAIN CONTENT - FORÇAR ESTILO */
+        .bg-gradient-to-br.from-gray-50.to-white {
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%) !important;
+        }
+        
+        /* ESPAÇAMENTOS */
+        .space-y-6 > * + * {
+            margin-top: 1.5rem !important;
+        }
+        
+        .space-y-3 > * + * {
+            margin-top: 0.75rem !important;
+        }
+        
+        .mb-6 {
+            margin-bottom: 1.5rem !important;
+        }
+        
+        .mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+        
+        .mb-2 {
+            margin-bottom: 0.5rem !important;
+        }
+        
+        /* TEXTOS */
+        .text-xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+        
+        .text-lg {
+            font-size: 1.125rem !important;
+            line-height: 1.75rem !important;
+        }
+        
+        .text-sm {
+            font-size: 0.875rem !important;
+            line-height: 1.25rem !important;
+        }
+        
+        .text-xs {
+            font-size: 0.75rem !important;
+            line-height: 1rem !important;
+        }
+        
+        .font-bold {
+            font-weight: 700 !important;
+        }
+        
+        .font-extrabold {
+            font-weight: 800 !important;
+        }
+        
+        .font-medium {
+            font-weight: 500 !important;
+        }
+        
+        /* CORES DE TEXTO */
+        .text-gray-800 {
+            color: #1f2937 !important;
+        }
+        
+        .text-gray-700 {
+            color: #374151 !important;
+        }
+        
+        .text-gray-600 {
+            color: #4b5563 !important;
+        }
+        
+        .text-teal-800 {
+            color: #0f766e !important;
+        }
+        
+        .text-cyan-200 {
+            color: #a5f3fc !important;
+        }
+        
+        .text-yellow-300 {
+            color: #fde047 !important;
+        }
+        
+        .text-cyan-300 {
+            color: #67e8f9 !important;
+        }
+        
+        /* BACKGROUNDS */
+        .bg-white {
+            background-color: white !important;
+        }
+        
+        .bg-white\\/10 {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        /* BORDAS E CANTOS */
+        .rounded-lg {
+            border-radius: 0.5rem !important;
+        }
+        
+        .rounded-full {
+            border-radius: 9999px !important;
+        }
+        
+        .border-l-4 {
+            border-left-width: 4px !important;
+        }
+        
+        .border-teal-800 {
+            border-color: #0f766e !important;
+        }
+        
+        .border-cyan-600 {
+            border-color: #0891b2 !important;
+        }
+        
+        .border-blue-500 {
+            border-color: #3b82f6 !important;
+        }
+        
+        /* SOMBRAS */
+        .shadow-sm {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        .shadow-2xl {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
+        
+        /* POSICIONAMENTO */
+        .absolute {
+            position: absolute !important;
+        }
+        
+        .inset-0 {
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+        }
+        
+        .z-10 {
+            z-index: 10 !important;
+        }
+        
+        /* FLEXBOX */
+        .flex {
+            display: flex !important;
+        }
+        
+        .items-center {
+            align-items: center !important;
+        }
+        
+        .items-start {
+            align-items: flex-start !important;
+        }
+        
+        .justify-center {
+            justify-content: center !important;
+        }
+        
+        .text-center {
+            text-align: center !important;
+        }
         
         /* AVATAR GEOMÉTRICO - CRÍTICO! */
         .profile-avatar {
