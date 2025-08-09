@@ -108,16 +108,30 @@ app.post('/api/generate-pdf', async (req, res) => {
     // ETAPA 2: Sub-aplicação gera PDF
     const pdfBuffer = await pdfService.generatePDFFromHTML(htmlContent);
     
+   // VERIFICAR se é Buffer binário válido
+   if (!Buffer.isBuffer(pdfBuffer)) {
+     console.error('❌ PDF não é um Buffer válido:', typeof pdfBuffer);
+     throw new Error('PDF gerado não é um Buffer binário válido');
+   }
+   
+   // VERIFICAR se começa com header PDF
+   const header = pdfBuffer.toString('ascii', 0, 4);
+   if (header !== '%PDF') {
+     console.error('❌ PDF não tem header válido:', header);
+     throw new Error('PDF gerado não tem header válido');
+   }
+   
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
     
     console.log(`✅ PDF completo gerado! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
     
     // ETAPA 3: Retornar PDF como download
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+   res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
     res.setHeader('Content-Length', pdfBuffer.length);
     res.setHeader('Cache-Control', 'no-cache');
     
+   // ENVIAR BINÁRIO - NÃO JSON!
     res.send(pdfBuffer);
     console.log('📤 PDF enviado como download! PROCESSO COMPLETO!');
     

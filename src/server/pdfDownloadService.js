@@ -81,6 +81,12 @@ export class PDFDownloadService {
       
       console.log(`✅ PDF gerado! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
       
+     // GARANTIR que retorna Buffer binário, não JSON
+     if (!(pdfBuffer instanceof Buffer)) {
+       console.log('⚠️ Convertendo para Buffer...');
+       return Buffer.from(pdfBuffer);
+     }
+     
       return pdfBuffer;
       
     } catch (error) {
