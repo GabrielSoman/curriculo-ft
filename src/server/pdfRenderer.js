@@ -1,20 +1,20 @@
 // RENDERIZADOR DE PDF SEM JSDOM
 // Usa o próprio frontend para renderizar e retorna via API
 
-import { generateSyncedHTML } from './frontendExtractor.js';
+import { generateHybridHTML } from './hybridRenderer.js';
 
 export async function renderPDFViaFrontend(data) {
-  console.log('🚀 RENDERIZADOR COM CSS COMPILADO: Usando CSS exato do frontend...');
+  console.log('🚀 RENDERIZADOR HÍBRIDO: CSS compilado + estilos críticos...');
   
   try {
-    // Usar o extrator que usa CSS compilado do frontend
-    const syncedHTML = generateSyncedHTML(data);
+    // Usar o renderizador híbrido
+    const hybridHTML = generateHybridHTML(data);
     
-    console.log('✅ HTML gerado com CSS compilado do build frontend');
-    return syncedHTML;
+    console.log('✅ HTML híbrido gerado - CSS compilado + estilos críticos');
+    return hybridHTML;
     
   } catch (error) {
-    console.error('❌ RENDERIZADOR COM CSS COMPILADO: Erro:', error);
+    console.error('❌ RENDERIZADOR HÍBRIDO: Erro:', error);
     throw error;
   }
 }

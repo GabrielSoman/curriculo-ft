@@ -67,61 +67,62 @@ export class PDFDownloadService {
         await page.waitForSelector('#curriculo-preview', { timeout: 0 });
         console.log('✅ Container principal encontrado');
         
-        await page.waitForSelector('.w-24.h-24', { timeout: 0 });
+        await page.waitForSelector('.avatar-forced', { timeout: 0 });
         console.log('✅ Avatar geométrico encontrado');
         
-        await page.waitForSelector('.flex.items-center.space-x-3', { timeout: 0 });
+        await page.waitForSelector('.contact-item-forced', { timeout: 0 });
         console.log('✅ Items de contato encontrados');
         
-        await page.waitForSelector('.w-1\\/3', { timeout: 0 }); // Sidebar
+        await page.waitForSelector('.sidebar-forced', { timeout: 0 });
         console.log('✅ Sidebar encontrada');
         
-        await page.waitForSelector('.w-2\\/3', { timeout: 0 }); // Main content
+        await page.waitForSelector('.main-content-forced', { timeout: 0 });
         console.log('✅ Conteúdo principal encontrado');
         
-        await page.waitForSelector('.bg-gradient-to-br', { timeout: 0 });
+        await page.waitForSelector('.pattern-1', { timeout: 0 });
         console.log('✅ Gradientes encontrados');
       } catch (error) {
         console.log('⚠️ Alguns elementos não encontrados, continuando...');
       }
       
-      // Aguardar CSS compilado ser aplicado - SEM TIMEOUT
-      console.log('⏳ Aguardando CSS Tailwind ser aplicado completamente...');
+      // Aguardar renderização híbrida - SEM TIMEOUT
+      console.log('⏳ Aguardando renderização híbrida ser aplicada...');
       try {
         await page.waitForFunction(() => {
-        const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.querySelector('.main-content');
-        const avatar = document.querySelector('.w-24.h-24');
-        const contactItems = document.querySelectorAll('.contact-item');
+        const sidebar = document.querySelector('.sidebar-forced');
+        const mainContent = document.querySelector('.main-content-forced');
+        const avatar = document.querySelector('.avatar-forced');
+        const contactItems = document.querySelectorAll('.contact-item-forced');
         
         if (!sidebar || !mainContent || !avatar || contactItems.length === 0) return false;
         
-        // Verificar se CSS foi aplicado corretamente
+        // Verificar se estilos híbridos foram aplicados
         const sidebarStyle = window.getComputedStyle(sidebar);
         const mainStyle = window.getComputedStyle(mainContent);
         const avatarStyle = window.getComputedStyle(avatar);
         const contactStyle = window.getComputedStyle(contactItems[0]);
         
-        // Verificar propriedades específicas
-        const sidebarHasGradient = sidebarStyle.background.includes('gradient') || sidebarStyle.backgroundImage.includes('gradient');
-        const contactHasBackground = contactStyle.backgroundColor !== 'rgba(0, 0, 0, 0)';
+        // Verificar propriedades críticas
+        const sidebarWidth = parseFloat(sidebarStyle.width);
+        const mainWidth = parseFloat(mainStyle.width);
+        const avatarSize = parseFloat(avatarStyle.width);
+        const contactBg = contactStyle.backgroundColor;
         
-        return sidebarStyle.width !== 'auto' && 
-               mainStyle.width !== 'auto' && 
-               avatarStyle.borderRadius === '50%' &&
-               (sidebarHasGradient || sidebarStyle.backgroundColor !== 'rgba(0, 0, 0, 0)') &&
-               contactHasBackground;
+        return sidebarWidth > 200 && 
+               mainWidth > 400 && 
+               avatarSize >= 90 &&
+               contactBg !== 'rgba(0, 0, 0, 0)';
         }, { timeout: 0 });
-        console.log('✅ CSS Tailwind aplicado completamente');
+        console.log('✅ Renderização híbrida aplicada completamente');
       } catch (error) {
-        console.log('⚠️ CSS pode não estar 100% aplicado, continuando...');
+        console.log('⚠️ Renderização pode não estar 100% aplicada, continuando...');
       }
 
       // TEMPO EXTRA PARA RENDERIZAÇÃO COMPLETA - AUMENTADO
-      console.log('⏳ Aguardando renderização final (30 segundos)...');
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      console.log('⏳ Aguardando renderização final (15 segundos)...');
+      await new Promise(resolve => setTimeout(resolve, 15000));
 
-      console.log('✅ CSS compilado aplicado, gerando PDF...');
+      console.log('✅ Renderização híbrida completa, gerando PDF...');
 
       
       // Gerar PDF com configurações otimizadas
