@@ -521,6 +521,9 @@ app.post('/api/generate-pdf', async (req, res) => {
         printBackground: true
       };
       const pdfBuffer = await htmlPdf.generatePdf(file, options);
+      const pdfBase64 = pdfBuffer.toString('base64');
+      
+      res.json({
         pdf: pdfBase64,
         message: 'PDF gerado com sucesso',
         size: pdfBuffer.length
