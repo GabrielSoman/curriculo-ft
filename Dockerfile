@@ -1,63 +1,49 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Etapa base com Node.js (MESMA DO PROJETO QUE FUNCIONOU)
+FROM node:20-slim
 
+# Instala Chromium e dependências essenciais (EXATO COMO NO DOU)
+RUN apt-get update && apt-get install -y \
+    chromium \
+    fonts-liberation \
+    libappindicator3-1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libgdk-pixbuf2.0-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xdg-utils \
+    --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Cria diretório da app
 WORKDIR /app
 
-# Copy package files first for better caching
+# Copia e instala dependências
 COPY package*.json ./
+RUN npm install
 
-# Install all dependencies (including dev dependencies for build)
-RUN npm install --no-audit --no-fund
-
-# Copy all source files
+# Copia o restante da aplicação
 COPY . .
 
-# Build the application
+# Build da aplicação frontend
 RUN npm run build
 
-# Verify build output
-RUN echo "=== Build completed ===" && ls -la dist/
+# Define a variável do caminho do Chromium (CRUCIAL PARA FUNCIONAR)
+ENV CHROME_BIN=/usr/bin/chromium
 
-# Production stage
-FROM node:18-alpine AS production
-
-# Install basic dependencies
-RUN apk add --no-cache \
-    ca-certificates \
-    fontconfig \
-    ttf-freefont \
-    ttf-dejavu \
-    && addgroup -g 1001 -S nodejs \
-    && adduser -S nextjs -u 1001
-
-# Create app directory
-WORKDIR /app
-
-# Copy built application and server files
-COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nextjs:nodejs /app/src/server ./src/server
-COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
-
-# Install production dependencies using npm install (not ci)
-RUN npm install --omit=dev --no-audit --no-fund && \
-    npm cache clean --force
-
-# Create necessary directories and set permissions
-RUN mkdir -p /tmp /app/.cache && \
-    chmod 777 /tmp && \
-    chown -R nextjs:nodejs /app/.cache
-
-# Switch to non-root user
-USER nextjs
-
-# Set Node.js environment variables
+# Define ambiente de produção
 ENV NODE_ENV=production
 
-# Set port environment variable
-ENV PORT=80
-
-# Expose port
+# Expõe a porta
 EXPOSE 80
 
-# Start the server
+# Comando para iniciar a aplicação
 CMD ["npm", "start"]

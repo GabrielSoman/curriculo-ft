@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "NODE_ENV=production node src/server/serverComplete.js",
+    "start:complete": "NODE_ENV=production node src/server/serverComplete.js",
     "start:dev": "NODE_ENV=development node src/server/server.js",
     "start:microservice": "NODE_ENV=production node src/server/serverMicroservice.js",
     "start:unified": "NODE_ENV=production node src/server/serverUnified.js",
