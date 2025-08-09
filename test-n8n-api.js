@@ -98,20 +98,26 @@ async function testN8NAPIJson() {
 
     const response = await fetch('http://localhost:80/api/generate-pdf-json', {
       method: 'POST',
-    console.log('📊 Status:', response.status);
       headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(testData)
+    });
+
+    console.log('📊 Status:', response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Erro na resposta:', errorText);
       return;
     }
-        'Content-Type': 'application/json'
+
     const result = await response.json();
     console.log('✅ Resposta JSON recebida:');
     console.log('- Success:', result.success);
     console.log('- Filename:', result.filename);
     console.log('- PDF Size:', result.pdf ? `${result.pdf.length} chars` : 'Não encontrado');
-      },
+
     // Verificar se é base64 válido
     if (result.pdf) {
       try {
@@ -136,12 +142,12 @@ async function testN8NAPIJson() {
         console.error('❌ Base64 inválido:', e.message);
       }
     }
-      body: JSON.stringify(testData)
+
   } catch (error) {
     console.error('❌ Erro no teste JSON:', error.message);
   }
 }
-    });
+
 // Executar ambos os testes
 testN8NAPI();
 setTimeout(() => {
