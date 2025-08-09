@@ -430,7 +430,9 @@ async function createBrowser() {
   const isProduction = process.env.NODE_ENV === 'production';
   
   const browserOptions = {
-    headless: true,
+    headless: 'new',
+    timeout: 60000,
+    protocolTimeout: 240000,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -438,35 +440,69 @@ async function createBrowser() {
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
-      '--single-process',
       '--disable-gpu',
+      '--disable-gpu-sandbox',
+      '--disable-software-rasterizer',
       '--disable-background-timer-throttling',
       '--disable-renderer-backgrounding',
       '--disable-backgrounding-occluded-windows',
-      '--disable-features=TranslateUI',
+      '--disable-features=TranslateUI,VizDisplayCompositor',
       '--disable-extensions',
       '--disable-component-extensions-with-background-pages',
       '--disable-default-apps',
       '--mute-audio',
       '--no-default-browser-check',
-      '--autoplay-policy=user-gesture-required',
       '--disable-background-networking',
       '--disable-sync',
       '--disable-translate',
       '--hide-scrollbars',
-      '--metrics-recording-only',
-      '--no-first-run',
-      '--safebrowsing-disable-auto-update',
       '--disable-web-security',
-      '--disable-features=VizDisplayCompositor'
-    ]
+      '--disable-features=site-per-process',
+      '--flag-switches-begin',
+      '--disable-ipc-flooding-protection',
+      '--flag-switches-end',
+      '--single-process',
+      '--memory-pressure-off',
+      '--max_old_space_size=4096'
+    ],
+    ignoreDefaultArgs: ['--disable-extensions']
   };
 
   if (isProduction) {
     browserOptions.executablePath = '/usr/bin/chromium-browser';
   }
 
-  return await puppeteer.launch(browserOptions);
+  console.log('🔧 Configurações do browser:', {
+    isProduction,
+    executablePath: browserOptions.executablePath || 'default',
+    argsCount: browserOptions.args.length
+  });
+
+  try {
+    const browser = await puppeteer.launch(browserOptions);
+    console.log('✅ Browser criado com sucesso');
+    return browser;
+  } catch (error) {
+    console.error('❌ Erro ao criar browser:', error.message);
+    
+    // Tentar configuração de fallback
+    console.log('🔄 Tentando configuração de fallback...');
+    const fallbackOptions = {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--single-process'
+      ]
+    };
+    
+    if (isProduction) {
+      fallbackOptions.executablePath = '/usr/bin/chromium-browser';
+    }
+    
+    return await puppeteer.launch(fallbackOptions);
+  }
 }
 
 // Endpoint principal para gerar PDF
@@ -490,40 +526,82 @@ app.post('/api/generate-pdf', async (req, res) => {
 
     console.log('🚀 Iniciando geração do PDF...');
     
-    // Criar navegador
-    browser = await createBrowser();
-    console.log('✅ Browser criado com sucesso');
+    // Criar navegador com retry
+    let browser = null;
+    let attempts = 0;
+    const maxAttempts = 3;
     
-    const page = await browser.newPage();
-    console.log('✅ Página criada');
+    while (attempts < maxAttempts && !browser) {
+      attempts++;
+      try {
+        console.log(`🔄 Tentativa ${attempts}/${maxAttempts} de criar browser...`);
+        browser = await createBrowser();
+        break;
+      } catch (error) {
+        console.error(`❌ Tentativa ${attempts} falhou:`, error.message);
+        if (attempts === maxAttempts) {
+          throw new Error(`Falha ao criar browser após ${maxAttempts} tentativas: ${error.message}`);
+        }
+        // Aguardar antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
     
-    // Configurar viewport
-    await page.setViewport({ width: 794, height: 1123 }); // A4 em pixels
+    let page = null;
+    try {
+      page = await browser.newPage();
+      console.log('✅ Página criada');
+      
+      // Configurar viewport
+      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
+      
+      // Configurar timeouts
+      page.setDefaultTimeout(30000);
+      page.setDefaultNavigationTimeout(30000);
+      
+      // Gerar HTML
+      const html = generateCurriculumHTML(data);
+      console.log('✅ HTML gerado');
+      
+      // Definir conteúdo com timeout
+      await page.setContent(html, { 
+        waitUntil: ['networkidle0', 'domcontentloaded'],
+        timeout: 30000 
+      });
+      console.log('✅ Conteúdo definido na página');
+      
+      // Aguardar renderização
+      await page.waitForTimeout(3000);
+      console.log('✅ Aguardou renderização');
+      
+      // Gerar PDF
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
+        printBackground: true,
+        preferCSSPageSize: true,
+        timeout: 30000
+      });
+      
+      console.log('✅ PDF gerado, tamanho:', pdfBuffer.length, 'bytes');
+      
+      // Fechar página primeiro
+      await page.close();
+      page = null;
+      
+    } catch (pageError) {
+      console.error('❌ Erro na página:', pageError.message);
+      if (page) {
+        try {
+          await page.close();
+        } catch (closeError) {
+          console.error('❌ Erro ao fechar página:', closeError.message);
+        }
+      }
+      throw pageError;
+    }
     
-    // Gerar HTML
-    const html = generateCurriculumHTML(data);
-    console.log('✅ HTML gerado');
-    
-    // Definir conteúdo
-    await page.setContent(html, { 
-      waitUntil: ['networkidle0', 'domcontentloaded'],
-      timeout: 30000 
-    });
-    console.log('✅ Conteúdo definido na página');
-    
-    // Aguardar um pouco para garantir renderização
-    await page.waitForTimeout(2000);
-    
-    // Gerar PDF
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-      printBackground: true,
-      preferCSSPageSize: true
-    });
-    
-    console.log('✅ PDF gerado, tamanho:', pdfBuffer.length, 'bytes');
-    
+    // Fechar browser
     await browser.close();
     browser = null;
     
