@@ -3,41 +3,40 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { JSDOM } from 'jsdom';
-
-// Configurações globais
-const MAX_CONCURRENT_REQUESTS = 5;
-const REQUEST_TIMEOUT = 60000; // 1 minuto
-let activeRequests = 0;
 
 const app = express();
 const PORT = process.env.PORT || 80;
 
-// Middleware
+// Middleware essencial
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '10mb' }));
 
-// Converter dados do N8N
-function convertN8NData(n8nData) {
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Função para converter dados do N8N/JSON para formato interno
+function convertInputData(inputData) {
+  console.log('📥 Dados recebidos:', JSON.stringify(inputData, null, 2));
+  
   let data;
   
-  if (Array.isArray(n8nData)) {
-    data = n8nData[0]?.body || n8nData[0];
-  } else if (n8nData?.body) {
-    data = n8nData.body;
+  // Tratar diferentes formatos de entrada
+  if (Array.isArray(inputData)) {
+    data = inputData[0]?.body || inputData[0];
+  } else if (inputData?.body) {
+    data = inputData.body;
   } else {
-    data = n8nData;
+    data = inputData;
   }
   
   if (!data) {
-    throw new Error('Dados não encontrados');
+    throw new Error('Dados não encontrados no request');
   }
 
-  // Converter formato de data
+  // Converter formato de data se necessário
   let nascimentoFormatado = '';
   if (data.nascimento) {
     try {
@@ -54,7 +53,8 @@ function convertN8NData(n8nData) {
     }
   }
 
-  return {
+  // Mapear todos os campos possíveis
+  const convertedData = {
     nome: data.nome || '',
     cpf: data.cpf || '',
     rg: data.rg || '',
@@ -72,13 +72,14 @@ function convertN8NData(n8nData) {
     experiencia: data.experiencia || data.experiencias || '',
     cursos: data['cursos-extras'] || data.cursos || ''
   };
+
+  console.log('✅ Dados convertidos:', JSON.stringify(convertedData, null, 2));
+  return convertedData;
 }
 
-// Gerar PDF usando JSDOM com CSS inline (sem Tailwind CDN)
-async function generatePDFWithJSDOM(data) {
-  console.log('🔄 Gerando PDF com JSDOM (CSS inline)...');
-  
-  const htmlContent = `
+// Função para gerar HTML do currículo
+function generateCurriculumHTML(data) {
+  return `
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -437,7 +438,6 @@ async function generatePDFWithJSDOM(data) {
             try {
                 console.log('Iniciando geração de PDF...');
                 
-                // Aguardar um pouco para garantir que tudo foi renderizado
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 
                 const element = document.getElementById('curriculum');
@@ -445,7 +445,6 @@ async function generatePDFWithJSDOM(data) {
                     throw new Error('Elemento curriculum não encontrado');
                 }
                 
-                console.log('Capturando elemento com html2canvas...');
                 const canvas = await html2canvas(element, {
                     scale: 2,
                     useCORS: true,
@@ -456,7 +455,6 @@ async function generatePDFWithJSDOM(data) {
                     logging: false
                 });
 
-                console.log('Canvas criado, gerando PDF...');
                 const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
@@ -466,7 +464,6 @@ async function generatePDFWithJSDOM(data) {
 
                 pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
                 
-                console.log('PDF gerado com sucesso');
                 return pdf.output('arraybuffer');
             } catch (error) {
                 console.error('Erro ao gerar PDF:', error);
@@ -476,10 +473,33 @@ async function generatePDFWithJSDOM(data) {
     </script>
 </body>
 </html>`;
+}
 
+// ENDPOINT PRINCIPAL - GERA PDF DIRETAMENTE
+app.post('/api/generate-pdf', async (req, res) => {
+  console.log('🚀 POST /api/generate-pdf - Iniciando...');
+  
   try {
-    // Criar DOM virtual
-    console.log('🔧 Criando DOM virtual...');
+    // Converter dados de entrada
+    const data = convertInputData(req.body);
+    
+    if (!data.nome) {
+      console.error('❌ Nome não fornecido');
+      return res.status(400).json({ 
+        error: 'Campo "nome" é obrigatório',
+        receivedData: req.body
+      });
+    }
+
+    console.log('✅ Dados válidos, gerando HTML...');
+    
+    // Gerar HTML
+    const htmlContent = generateCurriculumHTML(data);
+    
+    console.log('✅ HTML gerado, criando DOM virtual...');
+    
+    // Usar JSDOM para processar
+    const { JSDOM } = await import('jsdom');
     const dom = new JSDOM(htmlContent, {
       runScripts: 'dangerously',
       resources: 'usable',
@@ -488,19 +508,18 @@ async function generatePDFWithJSDOM(data) {
     });
 
     const window = dom.window;
-    const document = window.document;
-
+    
     console.log('⏳ Aguardando carregamento dos scripts...');
     
-    // Aguardar carregamento dos scripts com timeout
+    // Aguardar scripts carregarem
     await new Promise((resolve, reject) => {
       let attempts = 0;
-      const maxAttempts = 50; // 5 segundos
+      const maxAttempts = 50;
       
       const checkScripts = () => {
         attempts++;
         if (window.html2canvas && window.jspdf && window.jspdf.jsPDF) {
-          console.log('✅ Scripts carregados com sucesso');
+          console.log('✅ Scripts carregados');
           resolve();
         } else if (attempts >= maxAttempts) {
           reject(new Error('Timeout ao carregar scripts'));
@@ -511,135 +530,94 @@ async function generatePDFWithJSDOM(data) {
       checkScripts();
     });
 
-    // Aguardar renderização adicional
-    console.log('🎨 Aguardando renderização...');
+    // Aguardar renderização
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Gerar PDF
     console.log('📄 Gerando PDF...');
+    
+    // Gerar PDF
     const pdfArrayBuffer = await window.generatePDF();
     
     if (!pdfArrayBuffer || pdfArrayBuffer.byteLength === 0) {
       throw new Error('PDF gerado está vazio');
     }
     
-    console.log(`✅ PDF gerado com sucesso! Tamanho: ${pdfArrayBuffer.byteLength} bytes`);
-    return Buffer.from(pdfArrayBuffer);
-    
-  } catch (error) {
-    console.error('❌ Erro na geração do PDF:', error);
-    throw new Error(`Falha na geração do PDF: ${error.message}`);
-  }
-}
-
-// Middleware para limitar requisições concorrentes
-const rateLimitMiddleware = (req, res, next) => {
-  if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
-    return res.status(429).json({
-      error: 'Muitas requisições simultâneas',
-      message: 'Tente novamente em alguns segundos',
-      activeRequests: activeRequests,
-      maxConcurrent: MAX_CONCURRENT_REQUESTS
-    });
-  }
-  
-  activeRequests++;
-  console.log(`📊 Requisições ativas: ${activeRequests}/${MAX_CONCURRENT_REQUESTS}`);
-  
-  const cleanup = () => {
-    activeRequests--;
-    console.log(`📊 Requisições ativas: ${activeRequests}/${MAX_CONCURRENT_REQUESTS}`);
-  };
-  
-  res.on('finish', cleanup);
-  res.on('close', cleanup);
-  res.on('error', cleanup);
-  
-  next();
-};
-
-// ENDPOINT PRINCIPAL - RETORNA PDF DIRETAMENTE
-app.post('/api/generate-pdf', rateLimitMiddleware, async (req, res) => {
-  const timeoutId = setTimeout(() => {
-    console.error('⏰ Timeout da requisição após 1 minuto');
-    if (!res.headersSent) {
-      res.status(408).json({ error: 'Timeout na geração do PDF' });
-    }
-  }, REQUEST_TIMEOUT);
-  
-  try {
-    console.log('📥 Dados recebidos via API');
-    
-    const data = convertN8NData(req.body);
-    
-    if (!data.nome) {
-      return res.status(400).json({ 
-        error: 'Campo "nome" é obrigatório' 
-      });
-    }
-
-    console.log('🚀 Iniciando geração de PDF com JSDOM...');
-    
-    // Gerar PDF usando JSDOM
-    const pdfBuffer = await generatePDFWithJSDOM(data);
-    
-    // Definir nome do arquivo
+    const pdfBuffer = Buffer.from(pdfArrayBuffer);
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
     
-    // Retornar PDF diretamente
+    console.log(`✅ PDF gerado! Tamanho: ${pdfBuffer.length} bytes`);
+    
+    // Retornar PDF
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Length', pdfBuffer.length);
     
-    console.log('📤 Enviando PDF para cliente...');
     res.send(pdfBuffer);
-    console.log('✅ PDF enviado com sucesso!');
-    
-    clearTimeout(timeoutId);
+    console.log('📤 PDF enviado com sucesso!');
     
   } catch (error) {
     console.error('❌ Erro:', error.message);
-    
-    clearTimeout(timeoutId);
+    console.error('Stack:', error.stack);
     
     if (!res.headersSent) {
       res.status(500).json({ 
         error: 'Erro ao gerar PDF', 
-        details: error.message
+        details: error.message,
+        receivedData: req.body
       });
     }
   }
 });
 
-// Endpoint alternativo que retorna JSON com base64
-app.post('/api/generate-pdf-json', rateLimitMiddleware, async (req, res) => {
-  const timeoutId = setTimeout(() => {
-    console.error('⏰ Timeout da requisição JSON após 1 minuto');
-    if (!res.headersSent) {
-      res.status(408).json({ error: 'Timeout na geração do PDF' });
-    }
-  }, REQUEST_TIMEOUT);
+// ENDPOINT ALTERNATIVO - RETORNA JSON COM BASE64
+app.post('/api/generate-pdf-json', async (req, res) => {
+  console.log('🚀 POST /api/generate-pdf-json - Iniciando...');
   
   try {
-    console.log('📥 Dados recebidos via API JSON');
-    
-    const data = convertN8NData(req.body);
+    const data = convertInputData(req.body);
     
     if (!data.nome) {
       return res.status(400).json({ 
-        error: 'Campo "nome" é obrigatório' 
+        error: 'Campo "nome" é obrigatório',
+        receivedData: req.body
       });
     }
 
-    console.log('🚀 Iniciando geração de PDF JSON com JSDOM...');
+    const htmlContent = generateCurriculumHTML(data);
     
-    // Gerar PDF usando JSDOM
-    const pdfBuffer = await generatePDFWithJSDOM(data);
+    const { JSDOM } = await import('jsdom');
+    const dom = new JSDOM(htmlContent, {
+      runScripts: 'dangerously',
+      resources: 'usable',
+      pretendToBeVisual: true,
+      url: 'http://localhost'
+    });
+
+    const window = dom.window;
     
-    // Definir nome do arquivo
+    await new Promise((resolve, reject) => {
+      let attempts = 0;
+      const maxAttempts = 50;
+      
+      const checkScripts = () => {
+        attempts++;
+        if (window.html2canvas && window.jspdf && window.jspdf.jsPDF) {
+          resolve();
+        } else if (attempts >= maxAttempts) {
+          reject(new Error('Timeout ao carregar scripts'));
+        } else {
+          setTimeout(checkScripts, 100);
+        }
+      };
+      checkScripts();
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const pdfArrayBuffer = await window.generatePDF();
+    const pdfBuffer = Buffer.from(pdfArrayBuffer);
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
     
-    // Retornar JSON com PDF em base64
     res.json({
       success: true,
       pdf: pdfBuffer.toString('base64'),
@@ -647,26 +625,24 @@ app.post('/api/generate-pdf-json', rateLimitMiddleware, async (req, res) => {
       message: 'PDF gerado com sucesso'
     });
     
-    clearTimeout(timeoutId);
-    
   } catch (error) {
     console.error('❌ Erro:', error.message);
-    
-    clearTimeout(timeoutId);
     
     if (!res.headersSent) {
       res.status(500).json({ 
         error: 'Erro ao gerar PDF', 
-        details: error.message 
+        details: error.message,
+        receivedData: req.body
       });
     }
   }
 });
 
-// Endpoint de teste de conversão
+// ENDPOINT DE TESTE
 app.post('/api/test-conversion', (req, res) => {
   try {
-    const convertedData = convertN8NData(req.body);
+    console.log('🧪 Testando conversão de dados...');
+    const convertedData = convertInputData(req.body);
     res.json({
       success: true,
       originalData: req.body,
@@ -682,23 +658,20 @@ app.post('/api/test-conversion', (req, res) => {
   }
 });
 
-// Health check
+// HEALTH CHECK
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok',
-    activeRequests: activeRequests,
-    maxConcurrent: MAX_CONCURRENT_REQUESTS,
-    engine: 'JSDOM + html2canvas + jsPDF',
-    method: 'CSS inline, sem Tailwind CDN',
+    message: 'API funcionando',
     endpoints: {
-      'POST /api/generate-pdf': 'Retorna PDF diretamente (recomendado para N8N)',
+      'POST /api/generate-pdf': 'Retorna PDF diretamente',
       'POST /api/generate-pdf-json': 'Retorna JSON com PDF em base64',
       'POST /api/test-conversion': 'Testa conversão de dados'
     }
   });
 });
 
-// Status do build
+// STATUS
 app.get('/api/status', (req, res) => {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const distPath = path.join(__dirname, '../../dist');
@@ -706,10 +679,8 @@ app.get('/api/status', (req, res) => {
   
   res.json({
     build: buildExists ? 'ok' : 'not found',
-    distPath: distPath,
     server: 'running',
-    api: 'active',
-    engine: 'JSDOM (CSS inline, sem Puppeteer)'
+    api: 'active'
   });
 });
 
@@ -727,24 +698,10 @@ app.get('*', (req, res) => {
   }
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('🛑 Recebido SIGTERM, finalizando servidor...');
-  console.log('👋 Servidor finalizado');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  console.log('🛑 Recebido SIGINT, finalizando servidor...');
-  console.log('👋 Servidor finalizado');
-  process.exit(0);
-});
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`🎯 API: POST http://localhost:${PORT}/api/generate-pdf`);
-  console.log(`📄 Retorna PDF diretamente para download`);
-  console.log(`✅ Motor: JSDOM + html2canvas + jsPDF (CSS inline)`);
-  console.log(`⚙️ Configurações: ${MAX_CONCURRENT_REQUESTS} req simultâneas, timeout ${REQUEST_TIMEOUT/1000}s`);
-  console.log(`🔧 Solução robusta sem Tailwind CDN - CSS inline`);
+  console.log(`🎯 API Principal: POST http://localhost:${PORT}/api/generate-pdf`);
+  console.log(`📋 Teste: POST http://localhost:${PORT}/api/test-conversion`);
+  console.log(`❤️  Health: GET http://localhost:${PORT}/api/health`);
+  console.log(`✅ PRONTO PARA RECEBER REQUESTS HTTP!`);
 });
