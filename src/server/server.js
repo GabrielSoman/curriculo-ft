@@ -68,10 +68,10 @@ function convertN8NData(n8nData) {
     cidade: data.cidade || '',
     estado: data.estado || '',
     email: data['e-mail'] || data.email || '',
-    telefoneAlternativo: data['contato-alternativo'] || '',
+    telefoneAlternativo: data['contato-alternativo'] || data.telefoneAlternativo || '',
     escolaridade: data.escolaridade || '',
-    instituicao: data['escola-faculdade'] || '',
-    disponibilidade: data['disponibilidade-turno'] || '',
+    instituicao: data['escola-faculdade'] || data.instituicao || '',
+    disponibilidade: data['disponibilidade-turno'] || data.disponibilidade || '',
     experiencia: data.experiencia || data.experiencias || '',
     cursos: data['cursos-extras'] || data.cursos || ''
   };
@@ -571,7 +571,7 @@ app.post('/api/generate-pdf', async (req, res) => {
       console.log('✅ Conteúdo definido na página');
       
       // Aguardar renderização
-      await page.waitForTimeout(3000);
+      await new Promise(resolve => setTimeout(resolve, 3000));
       console.log('✅ Aguardou renderização');
       
       // Gerar PDF
