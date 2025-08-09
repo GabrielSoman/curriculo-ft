@@ -1,139 +1,403 @@
-// SUB-APLICAÇÃO INTERNA PARA GERAR PDF COMO DOWNLOAD
-// Recebe HTML renderizado e retorna PDF via HTTP
+// RENDERIZADOR QUE USA O PRÓPRIO FRONTEND
+// Em vez de recriar, serve uma página que usa o sistema existente
 
-import puppeteer from 'puppeteer';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-export class PDFDownloadService {
-  constructor() {
-    this.browser = null;
-  }
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-  async initialize() {
-    try {
-      console.log('🚀 Inicializando Puppeteer para PDF...');
-      
-      this.browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox'
-        ],
-        executablePath: process.env.CHROME_BIN || null
-      });
-      
-      console.log('✅ Puppeteer inicializado com sucesso!');
-      return true;
-    } catch (error) {
-      console.error('❌ Erro ao inicializar Puppeteer:', error);
-      return false;
-    }
-  }
-
-  async generatePDFFromHTML(htmlContent, fileName = 'curriculo.pdf') {
-    try {
-      if (!this.browser) {
-        const initialized = await this.initialize();
-        if (!initialized) {
-          throw new Error('Falha ao inicializar Puppeteer');
-        }
-      }
-
-      console.log('📄 USANDO FRONTEND REAL: Carregando página com React...');
-      
-      const page = await this.browser.newPage();
-      
-      await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      );
-      
-      await page.setViewport({
-        width: 1280,
-        height: 800
-      });
-
-      console.log('🌐 Carregando frontend real...');
-      await page.setContent(htmlContent, {
-        waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 30000
-      });
-
-      console.log('⏳ Aguardando React carregar e gerar PDF...');
-      
-      // Aguardar React e sistema de PDF carregarem
-      try {
-        await page.waitForSelector('#root', { timeout: 15000 });
-        console.log('✅ React carregado');
-        
-        // Aguardar o sistema gerar o PDF automaticamente (com timeout)
-        await page.waitForFunction(() => {
-          return document.title === 'PDF_READY' || document.title === 'PDF_ERROR';
-        }, { timeout: 60000 });
-        
-        const title = await page.title();
-        if (title === 'PDF_ERROR') {
-          const errorLogs = await page.evaluate(() => {
-            return Array.from(document.querySelectorAll('*')).map(el => el.textContent).join(' ');
-          });
-          throw new Error(`Frontend falhou ao gerar PDF. Logs: ${errorLogs.substring(0, 500)}`);
+export async function renderPDFViaFrontend(data) {
+  console.log('🚀 MOTOR UNIFICADO: Gerando HTML com CSS puro inline...');
+  
+  try {
+    const distPath = path.join(__dirname, '../../dist');
+    
+    } else {
+          // Verificar se o preview existe
+          const previewElement = document.getElementById('curriculo-preview');
+          if (previewElement) {
+            console.log('✅ Preview encontrado, sinalizando sucesso...');
+            document.title = 'PDF_READY';
+          } else {
+            console.log('⚠️ Preview não encontrado');
+            document.title = 'PDF_ERROR';
+          }
+// Função para gerar HTML unificado com CSS puro inline
+function generateUnifiedHTML(data) {
+  return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo - ${data.nome}</title>
+    <style>
+        /* RESET E BASE */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
         }
         
-        console.log('✅ Frontend gerou PDF com sucesso!');
-      } catch (error) {
-        console.log('⚠️ Erro no frontend, tentando captura direta...', error.message);
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #333333;
+        }
         
-        // Log do console da página
-        const consoleLogs = await page.evaluate(() => {
-          return window.console ? 'Console disponível' : 'Console não disponível';
-        });
-        console.log('🔍 Console da página:', consoleLogs);
-      }
-      
-      console.log('📸 Capturando página renderizada pelo frontend...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      
-      // Gerar PDF com configurações otimizadas
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        preferCSSPageSize: false,
-        displayHeaderFooter: false,
-        margin: {
-          top: '0mm',
-          right: '0mm',
-          bottom: '0mm',
-          left: '0mm'
-        },
-        width: '210mm',
-        height: '297mm'
-      });
-
-      await page.close();
-      
-      console.log(`✅ PDF gerado! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
-      
-     // GARANTIR que retorna Buffer binário, não JSON
-     if (!(pdfBuffer instanceof Buffer)) {
-       console.log('⚠️ Convertendo para Buffer...');
-       return Buffer.from(pdfBuffer);
-     }
-     
-      return pdfBuffer;
-      
-    } catch (error) {
-      console.error('❌ Erro ao gerar PDF:', error);
-      throw error;
-    }
-  }
-
-  async close() {
-    if (this.browser) {
-      await this.browser.close();
-      this.browser = null;
-      console.log('🔒 Puppeteer fechado');
-    }
-  }
+        /* CONTAINER PRINCIPAL */
+        #curriculum {
+            width: 794px;  /* 210mm */
+            height: 1123px; /* 297mm */
+            margin: 0;
+            background: white;
+            display: flex;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform-origin: top left;
+        }
+        
+        /* SIDEBAR */
+        .sidebar {
+            width: 264px; /* 1/3 de 794px */
+            background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%);
+            color: white;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* PADRÕES DE FUNDO */
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: -64px;
+            left: -64px;
+            width: 128px;
+            height: 128px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .sidebar::after {
+            content: '';
+            position: absolute;
+            bottom: -48px;
+            right: -48px;
+            width: 96px;
+            height: 96px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        /* SEÇÃO DO PERFIL */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* AVATAR COM PADRÃO GEOMÉTRICO */
+        .profile-avatar {
+            width: 96px;
+            height: 96px;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(4px);
+        }
+        
+        /* PADRÕES GEOMÉTRICOS */
+        .avatar-pattern { width: 64px; height: 64px; position: relative; }
+        .pattern-1 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(251, 191, 36, 0.4); border-radius: 50%; }
+        .pattern-2 { position: absolute; top: 8px; left: 8px; width: 48px; height: 48px; background: rgba(251, 191, 36, 0.3); border-radius: 50%; }
+        .pattern-3 { position: absolute; top: 16px; left: 16px; width: 32px; height: 32px; background: rgba(251, 191, 36, 0.5); border-radius: 50%; }
+        .pattern-4 { position: absolute; top: 24px; left: 24px; width: 16px; height: 16px; background: rgba(251, 191, 36, 0.7); border-radius: 50%; }
+        .pattern-5 { position: absolute; top: 4px; right: 4px; width: 12px; height: 12px; background: rgba(251, 191, 36, 0.6); border-radius: 2px; transform: rotate(45deg); }
+        .pattern-6 { position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; background: rgba(251, 191, 36, 0.6); border-radius: 2px; transform: rotate(45deg); }
+        .pattern-7 { position: absolute; bottom: 4px; right: 4px; width: 8px; height: 8px; background: rgba(251, 191, 36, 0.8); border-radius: 50%; }
+        
+        /* NOME */
+        .profile-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            color: white;
+        }
+        
+        /* SEÇÕES DA SIDEBAR */
+        .sidebar-section {
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .sidebar-title {
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+            padding-bottom: 8px;
+            letter-spacing: 1.5px;
+            color: white;
+        }
+        
+        /* ITEMS DE CONTATO */
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+        }
+        
+        .contact-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .contact-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 10px;
+            flex: 1;
+        }
+        
+        /* CORES DOS ÍCONES */
+        .icon-email { stroke: #67e8f9; }
+        .icon-phone { stroke: #fde047; }
+        .icon-location { stroke: #67e8f9; }
+        
+        /* DADOS PESSOAIS */
+        .personal-data {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+        }
+        
+        .personal-item {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            font-size: 10px;
+        }
+        
+        .personal-label {
+            color: #67e8f9;
+            font-weight: bold;
+        }
+        
+        /* DISPONIBILIDADE */
+        .availability-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+        }
+        
+        .availability-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            font-size: 10px;
+        }
+        
+        /* CONTEÚDO PRINCIPAL */
+        .main-content {
+            width: 530px; /* 2/3 de 794px */
+            padding: 24px;
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+        }
+        
+        .content-section {
+            margin-bottom: 24px;
+        }
+        
+        /* TÍTULOS DAS SEÇÕES */
+        .content-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            position: relative;
+        }
+        
+        .title-text {
+            color: #0f766e;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        
+        .content-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 48px;
+            height: 4px;
+            background: linear-gradient(90deg, #0f766e 0%, #0891b2 100%);
+            border-radius: 2px;
+        }
+        
+        /* CAIXAS DE CONTEÚDO */
+        .content-box {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #0f766e;
+        }
+        
+        .content-box.education { border-left-color: #0f766e; }
+        .content-box.experience { border-left-color: #0891b2; }
+        .content-box.courses { border-left-color: #3b82f6; }
+        
+        /* TEXTOS */
+        .content-text {
+            font-size: 11px;
+            color: #374151;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        
+        .education-title {
+            font-weight: bold;
+            color: #374151;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .education-institution {
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div id="curriculum">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="profile-section">
+                <div class="profile-avatar">
+                    <div class="avatar-pattern">
+                        <div class="pattern-1"></div>
+                        <div class="pattern-2"></div>
+                        <div class="pattern-3"></div>
+                        <div class="pattern-4"></div>
+                        <div class="pattern-5"></div>
+                        <div class="pattern-6"></div>
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">CONTATO</h3>
+                ${data.email ? `
+                <div class="contact-item">
+                    <svg class="contact-icon icon-email" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <span class="contact-text">${data.email}</span>
+                </div>
+                ` : ''}
+                ${data.telefone ? `
+                <div class="contact-item">
+                    <svg class="contact-icon icon-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    <span class="contact-text">${data.telefone}</span>
+                </div>
+                ` : ''}
+                ${data.endereco ? `
+                <div class="contact-item">
+                    <svg class="contact-icon icon-location" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <div class="contact-text">
+                        <div style="font-weight: 500;">${data.endereco}</div>
+                        <div>${data.cidade}, ${data.estado}</div>
+                        <div style="color: rgba(255,255,255,0.7);">${data.cep}</div>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+                        <div class="pattern-7"></div>
+            ${(data.cpf || data.rg || data.nascimento) ? `
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">DADOS PESSOAIS</h3>
+                <div class="personal-data">
+                    ${data.cpf ? `<div class="personal-item"><span class="personal-label">CPF:</span> ${data.cpf}</div>` : ''}
+                    ${data.rg ? `<div class="personal-item"><span class="personal-label">RG:</span> ${data.rg}</div>` : ''}
+                    ${data.nascimento ? `<div class="personal-item"><span class="personal-label">Nascimento:</span> ${new Date(data.nascimento).toLocaleDateString('pt-BR')}</div>` : ''}
+                </div>
+            </div>
+            ` : ''}
+                    </div>
+            ${data.disponibilidade ? `
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">DISPONIBILIDADE</h3>
+                <div class="availability-box">
+                    <div class="availability-text">${data.disponibilidade}</div>
+                </div>
+            </div>
+            ` : ''}
+        </div>
+                </div>
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            ${data.escolaridade ? `
+            <div class="content-section">
+                <h3 class="content-title">
+                    <span class="title-text">EDUCAÇÃO</span>
+                </h3>
+                <div class="content-box education">
+                    <div class="education-title">${data.escolaridade}</div>
+                    ${data.instituicao ? `<div class="education-institution">${data.instituicao}</div>` : ''}
+                </div>
+            </div>
+            ` : ''}
+                <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
+            ${data.experiencia ? `
+            <div class="content-section">
+                <h3 class="content-title">
+                    <span class="title-text">EXPERIÊNCIA PROFISSIONAL</span>
+                </h3>
+                <div class="content-box experience">
+                    <div class="content-text">${data.experiencia}</div>
+                </div>
+            </div>
+            ` : ''}
+            </div>
+            ${data.cursos ? `
+            <div class="content-section">
+                <h3 class="content-title">
+                    <span class="title-text">CURSOS E CERTIFICAÇÕES</span>
+                </h3>
+                <div class="content-box courses">
+                    <div class="content-text">${data.cursos}</div>
+                </div>
+            </div>
+            ` : ''}
+        </div>
+    </div>
+</body>
+</html>`;
 }
-
-// Instância singleton
-export const pdfService = new PDFDownloadService();
