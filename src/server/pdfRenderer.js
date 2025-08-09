@@ -70,15 +70,89 @@ export async function renderPDFViaFrontend(data) {
           console.log('✅ PDF gerado com sistema do frontend!');
           return pdf.output('arraybuffer');
         });
-        
-        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
-        return Buffer.from(pdfArrayBuffer);
-          } catch (error) {
-            console.error('❌ Erro ao gerar PDF:', error);
-            throw error;
-          }
-}
 
+    // Injetar dados e script de geração automática
+    const modifiedHtml = htmlContent
+      .replace('</head>', `
+        <!-- Carregar html2canvas e jsPDF via CDN -->
+        <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        
+        <script>
+          window.CURRICULUM_DATA = ${JSON.stringify(data)};
+          
+          // Função EXATA do frontend
+          window.generatePDFFromElement = async function(elementId, fileName) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+              throw new Error('Elemento de pré-visualização não encontrado');
+            }
+
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: '#ffffff',
+              width: element.scrollWidth,
+              height: element.scrollHeight,
+              windowWidth: element.scrollWidth,
+              windowHeight: element.scrollHeight
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            const imgWidth = 210;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            return pdf.output('arraybuffer');
+          };
+          
+          window.addEventListener('load', async () => {
+            try {
+              console.log('🚀 Iniciando geração automática de PDF...');
+              
+              // Aguardar React carregar completamente
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              
+              // Verificar se o preview existe
+              const preview = document.getElementById('curriculo-preview');
+              if (!preview) {
+                console.error('❌ Preview não encontrado');
+                window.PDF_ERROR = 'Preview não encontrado';
+                return;
+              }
+              
+              console.log('✅ Preview encontrado, gerando PDF...');
+              
+              // Usar EXATAMENTE o sistema do frontend
+              const pdfArrayBuffer = await window.generatePDFFromElement('curriculo-preview', 'curriculo.pdf');
+              
+              console.log('✅ PDF gerado com sucesso!');
+              window.PDF_READY = true;
+              window.PDF_DATA = pdfArrayBuffer;
+              
+            } catch (error) {
+              console.error('❌ Erro na geração:', error);
+              window.PDF_ERROR = error.message;
+            }
+          });
+        </script>
+      </head>`)
+      .replace('<div id="root"></div>', `
+        <div id="root"></div>
+        <script>
+          // Aguardar React montar e injetar dados
+          setTimeout(() => {
+            if (window.React && window.ReactDOM) {
+              console.log('✅ React carregado');
+            }
+          }, 1000);
+        </script>
+      `);
+          }
 // Função para gerar HTML unificado com CSS puro inline
 function generateUnifiedHTML(data) {
   return `
@@ -462,4 +536,13 @@ function generateUnifiedHTML(data) {
     </div>
 </body>
 </html>`;
+}
+
+        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
+        return Buffer.from(pdfArrayBuffer);
+
+  } catch (error) {
+    console.error('❌ Erro no renderizador unificado:', error);
+    throw error;
+  }
 }

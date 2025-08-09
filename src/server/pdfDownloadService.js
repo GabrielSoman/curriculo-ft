@@ -13,9 +13,27 @@ export async function renderPDFViaFrontend(data) {
   try {
     const distPath = path.join(__dirname, '../../dist');
     
-      // USAR O RENDERIZADOR QUE JÁ USA O SISTEMA DO FRONTEND
-      console.log('🎯 Usando renderizador que executa html2canvas + jsPDF...');
-      return await renderPDFViaFrontend(JSON.parse(htmlContent.match(/window\.CURRICULUM_DATA = ({.*?});/)[1]));
+    if (result.error) {
+      throw new Error(`Erro na geração do PDF: ${result.error}`);
+            });
+          }
+    if (!result.ready || !result.hasData) {
+          if (!window.jspdf) {
+            await new Promise((resolve, reject) => {
+              const script2 = document.createElement('script');
+              script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+              script2.onload = resolve;
+    // Obter o PDF gerado pelo sistema do frontend
+    const pdfArrayBuffer = await page.evaluate(() => window.PDF_DATA);
+            });
+          }
+          
+          // Aguardar scripts carregarem
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // USAR EXATAMENTE O MESMO CÓDIGO DO FRONTEND
+          const element = document.getElementById('curriculo-preview');
+          if (!element) {
             throw new Error('Elemento curriculo-preview não encontrado');
           }
           
@@ -44,7 +62,15 @@ export async function renderPDFViaFrontend(data) {
           console.log('✅ PDF gerado com sistema do frontend!');
           return pdf.output('arraybuffer');
         });
+        
+        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
+        return Buffer.from(pdfArrayBuffer);
+          } catch (error) {
+            console.error('❌ Erro ao gerar PDF:', error);
+            throw error;
           }
+}
+
 // Função para gerar HTML unificado com CSS puro inline
 function generateUnifiedHTML(data) {
   return `
@@ -328,6 +354,12 @@ function generateUnifiedHTML(data) {
                         <div class="pattern-4"></div>
                         <div class="pattern-5"></div>
                         <div class="pattern-6"></div>
+                        <div class="pattern-7"></div>
+                    </div>
+                </div>
+                <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
+            </div>
+            
             <div class="sidebar-section">
                 <h3 class="sidebar-title">CONTATO</h3>
                 ${data.email ? `
@@ -361,7 +393,7 @@ function generateUnifiedHTML(data) {
                 </div>
                 ` : ''}
             </div>
-                        <div class="pattern-7"></div>
+            
             ${(data.cpf || data.rg || data.nascimento) ? `
             <div class="sidebar-section">
                 <h3 class="sidebar-title">DADOS PESSOAIS</h3>
@@ -372,7 +404,7 @@ function generateUnifiedHTML(data) {
                 </div>
             </div>
             ` : ''}
-                    </div>
+            
             ${data.disponibilidade ? `
             <div class="sidebar-section">
                 <h3 class="sidebar-title">DISPONIBILIDADE</h3>
@@ -382,7 +414,7 @@ function generateUnifiedHTML(data) {
             </div>
             ` : ''}
         </div>
-                </div>
+        
         <!-- Conteúdo Principal -->
         <div class="main-content">
             ${data.escolaridade ? `
@@ -396,7 +428,7 @@ function generateUnifiedHTML(data) {
                 </div>
             </div>
             ` : ''}
-                <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
+            
             ${data.experiencia ? `
             <div class="content-section">
                 <h3 class="content-title">
@@ -406,8 +438,8 @@ function generateUnifiedHTML(data) {
                     <div class="content-text">${data.experiencia}</div>
                 </div>
             </div>
-        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
-        return Buffer.from(pdfArrayBuffer);
+            ` : ''}
+            
             ${data.cursos ? `
             <div class="content-section">
                 <h3 class="content-title">
