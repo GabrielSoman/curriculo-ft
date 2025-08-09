@@ -17,7 +17,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: true
+    host: true,
+    watch: {
+      ignored: ['**/src/server/**']
+    }
   },
   preview: {
     port: 4173,
