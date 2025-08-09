@@ -283,7 +283,7 @@ async function generatePDFWithJSDOM(data) {
   // Aguardar carregamento dos scripts
   await new Promise((resolve) => {
     const checkScripts = () => {
-      if (window.html2canvas && window.jspdf) {
+      if (window.html2canvas && window.jspdf && window.jspdf.jsPDF) {
         resolve();
       } else {
         setTimeout(checkScripts, 100);
@@ -298,12 +298,16 @@ async function generatePDFWithJSDOM(data) {
   await new Promise(resolve => setTimeout(resolve, 2000));
 
   // Gerar PDF
-  const pdfArrayBuffer = await window.generatePDF();
-  const pdfBuffer = Buffer.from(pdfArrayBuffer);
-
-  console.log('✅ PDF gerado com JSDOM, tamanho:', pdfBuffer.length, 'bytes');
-
-  return pdfBuffer;
+  try {
+    const pdfArrayBuffer = await window.generatePDF();
+    if (!pdfArrayBuffer || pdfArrayBuffer.byteLength === 0) {
+      throw new Error('PDF gerado está vazio');
+    }
+    return Buffer.from(pdfArrayBuffer);
+  } catch (error) {
+    console.error('❌ Erro na geração do PDF:', error);
+    throw new Error(`Falha na geração do PDF: ${error.message}`);
+  }
 }
 
 // Middleware para limitar requisições concorrentes
