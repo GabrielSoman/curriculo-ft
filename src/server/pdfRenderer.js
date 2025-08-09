@@ -3,14 +3,36 @@
 
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Função para extrair CSS compilado do build
+function getCompiledCSS() {
+  try {
+    const distPath = path.join(__dirname, '../../dist');
+    const files = fs.readdirSync(distPath);
+    const cssFile = files.find(file => file.endsWith('.css'));
+    
+    if (cssFile) {
+      const cssPath = path.join(distPath, cssFile);
+      return fs.readFileSync(cssPath, 'utf8');
+    }
+  } catch (error) {
+    console.warn('CSS compilado não encontrado, usando fallback');
+  }
+  return '';
+}
 
 export async function renderPDFViaFrontend(data) {
   console.log('🚀 RENDERIZADOR: Usando frontend para gerar PDF...');
   
   try {
+    // Obter CSS compilado
+    const compiledCSS = getCompiledCSS();
+    console.log('📦 CSS compilado carregado:', compiledCSS ? 'OK' : 'FALLBACK');
+    
     // Criar HTML que usa o MESMO componente do frontend
     const frontendHTML = `
 <!DOCTYPE html>
@@ -19,9 +41,11 @@ export async function renderPDFViaFrontend(data) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Currículo - ${data.nome}</title>
-    <!-- Usar o CSS compilado do build -->
-    <link rel="stylesheet" href="/assets/index-a9e3430a.css">
+    <!-- CSS compilado inline para Puppeteer -->
     <style>
+        ${compiledCSS}
+        
+        /* Garantir renderização correta no Puppeteer */
         body { margin: 0; padding: 0; background: white; }
         #pdf-container { 
             transform: scale(1); 
@@ -29,6 +53,7 @@ export async function renderPDFViaFrontend(data) {
             width: 210mm;
             height: 297mm;
         }
+        * { box-sizing: border-box; }
     </style>
 </head>
 <body>

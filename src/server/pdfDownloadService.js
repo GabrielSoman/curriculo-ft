@@ -56,11 +56,11 @@ export class PDFDownloadService {
       // Carregar HTML
       await page.setContent(htmlContent, {
         waitUntil: 'domcontentloaded',
-        timeout: 15000
+        timeout: 30000
       });
 
-      // Aguardar carregamento (como no projeto que funcionou)
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Aguardar renderização do CSS (mais tempo para Tailwind)
+      await new Promise(resolve => setTimeout(resolve, 8000));
 
       console.log('⏳ Aguardando renderização completa...');
 
