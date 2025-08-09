@@ -45,28 +45,45 @@ export async function renderPDFViaFrontend(data) {
     <style>
         ${compiledCSS}
         
-        /* Garantir renderização correta no Puppeteer */
-        body { margin: 0; padding: 0; background: white; }
+        /* Forçar renderização correta no Puppeteer */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background: white; 
+            font-family: system-ui, -apple-system, sans-serif !important;
+        }
         #pdf-container { 
             transform: scale(1); 
             transform-origin: top left;
             width: 210mm;
             height: 297mm;
+            overflow: hidden;
         }
-        * { box-sizing: border-box; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+        
+        /* Garantir que gradientes e cores apareçam */
+        .bg-gradient-to-br,
+        .bg-gradient-to-r {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
     </style>
 </head>
 <body>
     <div id="pdf-container">
-        <!-- Container que será renderizado -->
-        <div id="curriculo-preview" class="bg-white shadow-2xl mx-auto transform origin-top-left overflow-hidden" style="width: 210mm; height: 297mm; font-size: 11px; line-height: 1.5; font-family: system-ui, -apple-system, sans-serif; transform: scale(1); transform-origin: top left;">
+        <!-- Container que será renderizado - FORÇAR ESTILOS INLINE -->
+        <div id="curriculo-preview" class="bg-white shadow-2xl mx-auto transform origin-top-left overflow-hidden" style="width: 210mm !important; height: 297mm !important; font-size: 11px !important; line-height: 1.5 !important; font-family: system-ui, -apple-system, sans-serif !important; transform: scale(1) !important; transform-origin: top left !important; display: flex !important;">
           <div class="flex h-full">
             <!-- Sidebar -->
-            <div class="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden">
+            <div class="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden" style="width: 33.333333% !important; background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%) !important; color: white !important; padding: 24px !important; position: relative !important; overflow: hidden !important;">
               <!-- Background Pattern -->
-              <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
-                <div class="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12"></div>
+              <div class="absolute inset-0 opacity-10" style="position: absolute !important; inset: 0 !important; opacity: 0.1 !important;">
+                <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 128px !important; height: 128px !important; background: white !important; border-radius: 50% !important; transform: translate(-64px, -64px) !important;"></div>
+                <div class="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12" style="position: absolute !important; bottom: 0 !important; right: 0 !important; width: 96px !important; height: 96px !important; background: white !important; border-radius: 50% !important; transform: translate(48px, 48px) !important;"></div>
               </div>
               
               <div class="text-center mb-6">

@@ -55,26 +55,36 @@ export class PDFDownloadService {
 
       // Carregar HTML
       await page.setContent(htmlContent, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: ['domcontentloaded', 'networkidle0'],
         timeout: 30000
       });
 
-      // Aguardar renderização do CSS (mais tempo para Tailwind)
-      await new Promise(resolve => setTimeout(resolve, 8000));
+      // Aguardar renderização completa do CSS
+      await page.waitForFunction(() => {
+        const element = document.getElementById('curriculo-preview');
+        return element && getComputedStyle(element).width !== 'auto';
+      }, { timeout: 10000 });
+
+      // Aguardar mais tempo para garantir renderização
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
       console.log('⏳ Aguardando renderização completa...');
 
       
-      // Gerar PDF diretamente com Puppeteer (mais confiável)
+      // Gerar PDF com configurações otimizadas
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
+        preferCSSPageSize: false,
+        displayHeaderFooter: false,
         margin: {
           top: '0mm',
           right: '0mm',
           bottom: '0mm',
           left: '0mm'
-        }
+        },
+        width: '210mm',
+        height: '297mm'
       });
 
       await page.close();
