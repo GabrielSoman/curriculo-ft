@@ -515,17 +515,12 @@ app.post('/api/generate-pdf', async (req, res) => {
     try {
       // Gerar PDF real
       const file = { content: html };
+      const options = { 
+        format: 'A4',
+        margin: { top: '0', right: '0', bottom: '0', left: '0' },
+        printBackground: true
+      };
       const pdfBuffer = await htmlPdf.generatePdf(file, options);
-      const pdfBase64 = pdfBuffer.toString('base64');
-      
-      const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
-      
-      console.log('✅ PDF gerado com sucesso:', fileName);
-      console.log('📄 Tamanho do PDF:', pdfBuffer.length, 'bytes');
-      
-      res.json({
-        status: 'success',
-        filename: fileName,
         pdf: pdfBase64,
         message: 'PDF gerado com sucesso',
         size: pdfBuffer.length

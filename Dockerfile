@@ -6,18 +6,7 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Clean npm cache and install with optimizations
-RUN npm cache clean --force && \
-    npm install --no-audit --no-fund --prefer-offline
-
-# Copy all source files
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Production stage
-FROM node:18-alpine
+RUN apk add --no-cache chromium
 
 # Create app directory
 WORKDIR /app
