@@ -1,5 +1,6 @@
 import fetch from 'node:fetch';
 import { Buffer } from 'node:buffer';
+import fs from 'node:fs';
 
 async function testN8NAPI() {
   const testData = {
@@ -37,13 +38,80 @@ async function testN8NAPI() {
       return;
     }
 
+    // Verificar se a resposta é um PDF
+    const contentType = response.headers.get('content-type');
+    console.log('📄 Content-Type:', contentType);
+    
+    if (contentType === 'application/pdf') {
+      const pdfBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(pdfBuffer);
+      
+      console.log('✅ PDF recebido diretamente');
+      console.log('📊 Tamanho do PDF:', buffer.length, 'bytes');
+      
+      // Verificar header PDF
+      const header = buffer.toString('ascii', 0, 4);
+      console.log('📄 Header do arquivo:', header);
+      
+      if (header === '%PDF') {
+        console.log('🎯 PDF válido detectado!');
+        
+        // Salvar PDF para teste
+        const fileName = `teste_curriculo_${Date.now()}.pdf`;
+        fs.writeFileSync(fileName, buffer);
+        console.log(`💾 PDF salvo como: ${fileName}`);
+      } else {
+        console.log('⚠️  Header não é de PDF');
+      }
+    } else {
+      // Tentar como JSON (fallback)
+      const result = await response.json();
+      console.log('✅ Resposta JSON recebida:');
+      console.log('- Success:', result.success);
+      console.log('- Filename:', result.filename);
+      console.log('- Message:', result.message);
+    }
+
+  } catch (error) {
+    console.error('❌ Erro no teste:', error.message);
+  }
+}
+
+// Testar também o endpoint JSON
+async function testN8NAPIJson() {
+  const testData = {
+    nome: 'Maria Santos Silva',
+    email: 'maria@email.com',
+    telefone: '(11) 88888-8888',
+    endereco: 'Av. Paulista, 1000',
+    cidade: 'São Paulo',
+    estado: 'SP',
+    escolaridade: 'Ensino Médio Completo',
+    disponibilidade: 'Tarde, Noite',
+    experiencia: 'Vendedora na Loja ABC (2020-2023)\n• Atendimento ao cliente\n• Organização do estoque',
+    cursos: 'Curso de Vendas - 20h (2023)\nInformática Básica - 40h (2022)'
+  };
+
+  try {
+    console.log('\n🧪 Testando API N8N JSON...');
+    console.log('📡 URL:', 'http://localhost:80/api/generate-pdf-json');
+
+    const response = await fetch('http://localhost:80/api/generate-pdf-json', {
+      method: 'POST',
+    console.log('📊 Status:', response.status);
+      headers: {
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro na resposta:', errorText);
+      return;
+    }
+        'Content-Type': 'application/json'
     const result = await response.json();
-    console.log('✅ Resposta recebida:');
-    console.log('- Status:', result.status);
+    console.log('✅ Resposta JSON recebida:');
+    console.log('- Success:', result.success);
     console.log('- Filename:', result.filename);
     console.log('- PDF Size:', result.pdf ? `${result.pdf.length} chars` : 'Não encontrado');
-    console.log('- PDF Preview:', result.pdf ? result.pdf.substring(0, 100) + '...' : 'N/A');
-
+      },
     // Verificar se é base64 válido
     if (result.pdf) {
       try {
@@ -56,6 +124,11 @@ async function testN8NAPI() {
         
         if (header === '%PDF') {
           console.log('🎯 PDF válido detectado!');
+          
+          // Salvar PDF para teste
+          const fileName = `teste_curriculo_json_${Date.now()}.pdf`;
+          fs.writeFileSync(fileName, buffer);
+          console.log(`💾 PDF salvo como: ${fileName}`);
         } else {
           console.log('⚠️  Header não é de PDF');
         }
@@ -63,10 +136,14 @@ async function testN8NAPI() {
         console.error('❌ Base64 inválido:', e.message);
       }
     }
-
+      body: JSON.stringify(testData)
   } catch (error) {
-    console.error('❌ Erro no teste:', error.message);
+    console.error('❌ Erro no teste JSON:', error.message);
   }
 }
-
+    });
+// Executar ambos os testes
 testN8NAPI();
+setTimeout(() => {
+  testN8NAPIJson();
+}, 2000);

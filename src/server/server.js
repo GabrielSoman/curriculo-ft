@@ -80,7 +80,9 @@ async function createBrowser() {
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
-      '--single-process'
+      '--single-process',
+      '--disable-web-security',
+      '--disable-features=VizDisplayCompositor'
     ]
   };
 
@@ -102,13 +104,13 @@ async function createBrowser() {
   return await puppeteer.launch(browserOptions);
 }
 
-// ENDPOINT PRINCIPAL - USA O FRONTEND PARA GERAR PDF
+// ENDPOINT PRINCIPAL - RETORNA PDF DIRETAMENTE PARA N8N
 app.post('/api/generate-pdf', async (req, res) => {
   let browser = null;
   let page = null;
   
   try {
-    console.log('📥 Dados recebidos via API');
+    console.log('📥 Dados recebidos via API N8N');
     
     const data = convertN8NData(req.body);
     
@@ -118,99 +120,444 @@ app.post('/api/generate-pdf', async (req, res) => {
       });
     }
 
-    console.log('🚀 Abrindo frontend para gerar PDF...');
+    console.log('🚀 Iniciando geração de PDF...');
     
     // Criar browser
     browser = await createBrowser();
     page = await browser.newPage();
     
-    // Abrir o próprio frontend
-    await page.goto(`http://localhost:${PORT}`, {
-      waitUntil: 'networkidle0'
-    });
+    // Configurar viewport para A4
+    await page.setViewport({ width: 1200, height: 1600 });
     
-    console.log('✅ Frontend carregado');
-    
-    // Preencher os campos do formulário usando o frontend real
-    await page.evaluate((formData) => {
-      // Simular preenchimento dos campos
-      const setInputValue = (name, value) => {
-        const input = document.querySelector(`input[name="${name}"], textarea[name="${name}"]`);
-        if (input) {
-          input.value = value;
-          input.dispatchEvent(new Event('change', { bubbles: true }));
+    // Criar HTML completo com o currículo
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo - ${data.nome}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .curriculum-container {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
-      };
-      
-      // Preencher todos os campos
-      Object.entries(formData).forEach(([key, value]) => {
-        setInputValue(key, value);
-      });
-      
-    }, data);
+        @media print {
+            .curriculum-container {
+                box-shadow: none;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="curriculum-container">
+        <div class="flex h-full">
+            <!-- Sidebar -->
+            <div class="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden">
+                <!-- Background Pattern -->
+                <div class="absolute inset-0 opacity-10">
+                    <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
+                    <div class="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12"></div>
+                </div>
+                
+                <div class="text-center mb-6">
+                    <div class="w-24 h-24 bg-gradient-to-br from-yellow-400/30 to-white/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/40 relative overflow-hidden">
+                        <!-- Padrão geométrico -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-16 h-16 relative">
+                                <div class="absolute inset-0 bg-yellow-400/40 rounded-full"></div>
+                                <div class="absolute top-2 left-2 w-12 h-12 bg-yellow-400/30 rounded-full"></div>
+                                <div class="absolute top-4 left-4 w-8 h-8 bg-yellow-400/50 rounded-full"></div>
+                                <div class="absolute top-6 left-6 w-4 h-4 bg-yellow-400/70 rounded-full"></div>
+                                <div class="absolute top-1 right-1 w-3 h-3 bg-yellow-400/60 rotate-45 rounded-sm"></div>
+                                <div class="absolute bottom-1 left-1 w-3 h-3 bg-yellow-400/60 rotate-45 rounded-sm"></div>
+                                <div class="absolute bottom-1 right-1 w-2 h-2 bg-yellow-400/80 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="text-xl font-bold mb-2 tracking-wide">${data.nome || 'Seu Nome'}</h1>
+                </div>
+
+                <div class="space-y-6 relative z-10">
+                    <div>
+                        <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">CONTATO</h3>
+                        <div class="space-y-3 text-xs">
+                            ${data.email ? `
+                            <div class="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                <svg class="w-4 h-4 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-white/90">${data.email}</span>
+                            </div>
+                            ` : ''}
+                            ${data.telefone ? `
+                            <div class="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                <svg class="w-4 h-4 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                </svg>
+                                <span class="text-white/90">${data.telefone}</span>
+                            </div>
+                            ` : ''}
+                            ${data.endereco ? `
+                            <div class="flex items-start space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                <svg class="w-4 h-4 mt-0.5 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <div class="text-white/90">
+                                    <div class="font-medium">${data.endereco}</div>
+                                    <div>${data.cidade}, ${data.estado}</div>
+                                    <div class="text-white/70">${data.cep}</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    ${(data.cpf || data.rg || data.nascimento) ? `
+                    <div>
+                        <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DADOS PESSOAIS</h3>
+                        <div class="space-y-2 text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                            ${data.cpf ? `<div class="text-white/90"><strong class="text-cyan-200">CPF:</strong> ${data.cpf}</div>` : ''}
+                            ${data.rg ? `<div class="text-white/90"><strong class="text-cyan-200">RG:</strong> ${data.rg}</div>` : ''}
+                            ${data.nascimento ? `<div class="text-white/90"><strong class="text-cyan-200">Nascimento:</strong> ${new Date(data.nascimento).toLocaleDateString('pt-BR')}</div>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${data.disponibilidade ? `
+                    <div>
+                        <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DISPONIBILIDADE</h3>
+                        <div class="text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                            <div class="text-white/90 font-medium">${data.disponibilidade}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <div class="w-2/3 p-6 bg-gradient-to-br from-gray-50 to-white">
+                <div class="space-y-6">
+                    ${data.escolaridade ? `
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
+                            <span class="text-teal-800 font-extrabold tracking-wide">EDUCAÇÃO</span>
+                            <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                        </h3>
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-teal-800">
+                            <div class="font-bold text-gray-800 text-sm">${data.escolaridade}</div>
+                            ${data.instituicao ? `<div class="text-gray-600 mt-1 font-medium">${data.instituicao}</div>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${data.experiencia ? `
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
+                            <span class="text-teal-800 font-extrabold tracking-wide">EXPERIÊNCIA PROFISSIONAL</span>
+                            <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                        </h3>
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-cyan-600">
+                            <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed">${data.experiencia}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${data.cursos ? `
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
+                            <span class="text-teal-800 font-extrabold tracking-wide">CURSOS E CERTIFICAÇÕES</span>
+                            <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                        </h3>
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
+                            <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed">${data.cursos}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
     
-    console.log('✅ Dados preenchidos no formulário');
+    // Carregar o HTML no Puppeteer
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
-    // Aguardar um pouco para React processar
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('✅ HTML carregado no Puppeteer');
     
-    // Clicar no botão de visualizar
-    await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'));
-      const visualizarBtn = buttons.find(btn => btn.textContent?.includes('Visualizar'));
-      if (visualizarBtn) visualizarBtn.click();
-    });
-    
-    console.log('✅ Preview gerado');
-    
-    // Aguardar preview renderizar
-    await page.waitForSelector('#curriculo-preview', { timeout: 5000 });
+    // Aguardar renderização completa
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Agora usar o motor do frontend para gerar o PDF
-    const pdfData = await page.evaluate(async () => {
-      // Esta função roda no contexto do browser
-      const element = document.getElementById('curriculo-preview');
-      if (!element) throw new Error('Preview não encontrado');
-      
-      // Importar as funções (assumindo que estão globais ou podemos acessá-las)
-      // Como estamos no contexto do frontend, html2canvas e jsPDF já estão disponíveis
-      
-      // Usar html2canvas (já carregado no frontend)
-      const canvas = await window.html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      });
-      
-      // Converter para PDF usando jsPDF (já carregado no frontend)
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new window.jsPDF('p', 'mm', 'a4');
-      
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      
-      // Retornar como base64
-      return pdf.output('datauristring').split(',')[1];
+    // Gerar PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '0mm',
+        right: '0mm',
+        bottom: '0mm',
+        left: '0mm'
+      }
     });
     
-    console.log('✅ PDF gerado pelo frontend');
+    console.log('✅ PDF gerado com sucesso');
     
     // Fechar browser
     await page.close();
     await browser.close();
     
-    // Retornar o PDF
+    // Definir nome do arquivo
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
     
+    // Retornar PDF diretamente para N8N
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    res.send(pdfBuffer);
+    
+  } catch (error) {
+    console.error('❌ Erro:', error);
+    
+    if (page) await page.close().catch(() => {});
+    if (browser) await browser.close().catch(() => {});
+    
+    res.status(500).json({ 
+      error: 'Erro ao gerar PDF', 
+      details: error.message 
+    });
+  }
+});
+
+// Endpoint alternativo que retorna JSON com base64 (para compatibilidade)
+app.post('/api/generate-pdf-json', async (req, res) => {
+  let browser = null;
+  let page = null;
+  
+  try {
+    console.log('📥 Dados recebidos via API JSON');
+    
+    const data = convertN8NData(req.body);
+    
+    if (!data.nome) {
+      return res.status(400).json({ 
+        error: 'Campo "nome" é obrigatório' 
+      });
+    }
+
+    console.log('🚀 Iniciando geração de PDF JSON...');
+    
+    // Criar browser
+    browser = await createBrowser();
+    page = await browser.newPage();
+    
+    // Configurar viewport para A4
+    await page.setViewport({ width: 1200, height: 1600 });
+    
+    // Criar HTML completo com o currículo (mesmo HTML do endpoint principal)
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo - ${data.nome}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .curriculum-container {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        @media print {
+            .curriculum-container {
+                box-shadow: none;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="curriculum-container">
+        <div class="flex h-full">
+            <!-- Sidebar -->
+            <div class="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden">
+                <!-- Background Pattern -->
+                <div class="absolute inset-0 opacity-10">
+                    <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
+                    <div class="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12"></div>
+                </div>
+                
+                <div class="text-center mb-6">
+                    <div class="w-24 h-24 bg-gradient-to-br from-yellow-400/30 to-white/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/40 relative overflow-hidden">
+                        <!-- Padrão geométrico -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-16 h-16 relative">
+                                <div class="absolute inset-0 bg-yellow-400/40 rounded-full"></div>
+                                <div class="absolute top-2 left-2 w-12 h-12 bg-yellow-400/30 rounded-full"></div>
+                                <div class="absolute top-4 left-4 w-8 h-8 bg-yellow-400/50 rounded-full"></div>
+                                <div class="absolute top-6 left-6 w-4 h-4 bg-yellow-400/70 rounded-full"></div>
+                                <div class="absolute top-1 right-1 w-3 h-3 bg-yellow-400/60 rotate-45 rounded-sm"></div>
+                                <div class="absolute bottom-1 left-1 w-3 h-3 bg-yellow-400/60 rotate-45 rounded-sm"></div>
+                                <div class="absolute bottom-1 right-1 w-2 h-2 bg-yellow-400/80 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="text-xl font-bold mb-2 tracking-wide">${data.nome || 'Seu Nome'}</h1>
+                </div>
+
+                <div class="space-y-6 relative z-10">
+                    <div>
+                        <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">CONTATO</h3>
+                        <div class="space-y-3 text-xs">
+                            ${data.email ? `
+                            <div class="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                <svg class="w-4 h-4 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-white/90">${data.email}</span>
+                            </div>
+                            ` : ''}
+                            ${data.telefone ? `
+                            <div class="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                <svg class="w-4 h-4 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                </svg>
+                                <span class="text-white/90">${data.telefone}</span>
+                            </div>
+                            ` : ''}
+                            ${data.endereco ? `
+                            <div class="flex items-start space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                <svg class="w-4 h-4 mt-0.5 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <div class="text-white/90">
+                                    <div class="font-medium">${data.endereco}</div>
+                                    <div>${data.cidade}, ${data.estado}</div>
+                                    <div class="text-white/70">${data.cep}</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    ${(data.cpf || data.rg || data.nascimento) ? `
+                    <div>
+                        <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DADOS PESSOAIS</h3>
+                        <div class="space-y-2 text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                            ${data.cpf ? `<div class="text-white/90"><strong class="text-cyan-200">CPF:</strong> ${data.cpf}</div>` : ''}
+                            ${data.rg ? `<div class="text-white/90"><strong class="text-cyan-200">RG:</strong> ${data.rg}</div>` : ''}
+                            ${data.nascimento ? `<div class="text-white/90"><strong class="text-cyan-200">Nascimento:</strong> ${new Date(data.nascimento).toLocaleDateString('pt-BR')}</div>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${data.disponibilidade ? `
+                    <div>
+                        <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DISPONIBILIDADE</h3>
+                        <div class="text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                            <div class="text-white/90 font-medium">${data.disponibilidade}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <div class="w-2/3 p-6 bg-gradient-to-br from-gray-50 to-white">
+                <div class="space-y-6">
+                    ${data.escolaridade ? `
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
+                            <span class="text-teal-800 font-extrabold tracking-wide">EDUCAÇÃO</span>
+                            <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                        </h3>
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-teal-800">
+                            <div class="font-bold text-gray-800 text-sm">${data.escolaridade}</div>
+                            ${data.instituicao ? `<div class="text-gray-600 mt-1 font-medium">${data.instituicao}</div>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${data.experiencia ? `
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
+                            <span class="text-teal-800 font-extrabold tracking-wide">EXPERIÊNCIA PROFISSIONAL</span>
+                            <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                        </h3>
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-cyan-600">
+                            <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed">${data.experiencia}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${data.cursos ? `
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
+                            <span class="text-teal-800 font-extrabold tracking-wide">CURSOS E CERTIFICAÇÕES</span>
+                            <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                        </h3>
+                        <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
+                            <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed">${data.cursos}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+    
+    // Carregar o HTML no Puppeteer
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    console.log('✅ HTML carregado no Puppeteer');
+    
+    // Aguardar renderização completa
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Gerar PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '0mm',
+        right: '0mm',
+        bottom: '0mm',
+        left: '0mm'
+      }
+    });
+    
+    console.log('✅ PDF gerado com sucesso');
+    
+    // Fechar browser
+    await page.close();
+    await browser.close();
+    
+    // Definir nome do arquivo
+    const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
+    
+    // Retornar JSON com PDF em base64
     res.json({
       success: true,
-      pdf: pdfData,
+      pdf: pdfBuffer.toString('base64'),
       filename: fileName,
-      message: 'PDF gerado com sucesso usando o motor do frontend'
+      message: 'PDF gerado com sucesso'
     });
     
   } catch (error) {
@@ -226,12 +573,50 @@ app.post('/api/generate-pdf', async (req, res) => {
   }
 });
 
+// Endpoint de teste de conversão
+app.post('/api/test-conversion', (req, res) => {
+  try {
+    const convertedData = convertN8NData(req.body);
+    res.json({
+      success: true,
+      originalData: req.body,
+      convertedData: convertedData,
+      message: 'Conversão realizada com sucesso'
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: 'Erro na conversão',
+      details: error.message,
+      originalData: req.body
+    });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok',
-    engine: 'Frontend Engine (html2canvas + jsPDF)',
-    method: 'Puppeteer abre o frontend e usa o motor existente'
+    engine: 'Puppeteer PDF Generator',
+    method: 'HTML direto para PDF com mesmo design do frontend',
+    endpoints: {
+      'POST /api/generate-pdf': 'Retorna PDF diretamente (recomendado para N8N)',
+      'POST /api/generate-pdf-json': 'Retorna JSON com PDF em base64',
+      'POST /api/test-conversion': 'Testa conversão de dados'
+    }
+  });
+});
+
+// Status do build
+app.get('/api/status', (req, res) => {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const distPath = path.join(__dirname, '../../dist');
+  const buildExists = fs.existsSync(distPath);
+  
+  res.json({
+    build: buildExists ? 'ok' : 'not found',
+    distPath: distPath,
+    server: 'running',
+    api: 'active'
   });
 });
 
@@ -251,4 +636,7 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`🎯 USANDO
+  console.log(`🎯 API N8N: POST http://localhost:${PORT}/api/generate-pdf`);
+  console.log(`📄 Retorna PDF diretamente para download`);
+  console.log(`✅ Motor: Puppeteer com HTML idêntico ao frontend`);
+});
