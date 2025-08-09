@@ -3,10 +3,11 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies for Playwright
+# Install Chromium
 RUN apk add --no-cache \
-    wkhtmltopdf \
-    xvfb \
+    chromium \
+    nss \
+    freetype \
     ttf-freefont \
     fontconfig
 
@@ -28,10 +29,11 @@ RUN echo "=== Build completed ===" && ls -la dist/
 # Production stage
 FROM node:18-alpine AS production
 
-# Install dependencies for Playwright
+# Install Chromium
 RUN apk add --no-cache \
-    wkhtmltopdf \
-    xvfb \
+    chromium \
+    nss \
+    freetype \
     ttf-freefont \
     fontconfig
 
@@ -53,6 +55,10 @@ RUN npm ci --only=production --no-audit --no-fund && \
 
 # Switch to non-root user
 USER nextjs
+
+# Set Puppeteer to use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Set port environment variable
 ENV PORT=80

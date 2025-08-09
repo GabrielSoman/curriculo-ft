@@ -3,10 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { chromium } from 'playwright-chromium';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import puppeteer from 'puppeteer-core';
 
 const app = express();
 const PORT = process.env.PORT || 80;
@@ -522,17 +519,32 @@ app.post('/api/generate-pdf', async (req, res) => {
     };
 
     try {
-      // Gerar PDF com wkhtmltopdf (mais estável em containers)
-      const pdfBuffer = await wkhtmltopdfAsync(html, {
-        pageSize: 'A4',
-        marginTop: 0,
-        marginRight: 0,
-        marginBottom: 0,
-        marginLeft: 0,
-        printMediaType: true,
-        disableSmartShrinking: true,
-        encoding: 'UTF-8'
+      // Usar Chromium do sistema se disponível
+      const browser = await puppeteer.launch({
+        executablePath: '/usr/bin/chromium-browser',
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ]
       });
+      
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
+        printBackground: true
+      });
+      
+      await browser.close();
       
       const pdfBase64 = pdfBuffer.toString('base64');
       
