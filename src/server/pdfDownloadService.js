@@ -1,8 +1,7 @@
 // SUB-APLICAÇÃO INTERNA PARA GERAR PDF COMO DOWNLOAD
 // Recebe HTML renderizado e retorna PDF via HTTP
 
-import puppeteer from 'puppeteer-core';
-import chromium from 'chromium';
+const puppeteer = require('puppeteer');
 
 export class PDFDownloadService {
   constructor() {
@@ -14,18 +13,12 @@ export class PDFDownloadService {
       console.log('🚀 Inicializando Puppeteer para PDF...');
       
       this.browser = await puppeteer.launch({
-        executablePath: chromium.path,
-        headless: true,
+        headless: 'new',
         args: [
           '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu'
-        ]
+          '--disable-setuid-sandbox'
+        ],
+        executablePath: process.env.CHROME_BIN || null
       });
       
       console.log('✅ Puppeteer inicializado com sucesso!');
@@ -49,39 +42,38 @@ export class PDFDownloadService {
       
       const page = await this.browser.newPage();
       
+      // Configuração que funcionou no EasyPanel
+      await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      );
+      
       // Configurar viewport para A4
       await page.setViewport({
-        width: 794,  // 210mm em pixels
-        height: 1123, // 297mm em pixels
-        deviceScaleFactor: 2
+        width: 1280,
+        height: 800
       });
 
       // Carregar HTML
       await page.setContent(htmlContent, {
-        waitUntil: ['networkidle0', 'domcontentloaded']
+        waitUntil: 'domcontentloaded',
+        timeout: 15000
       });
 
-      // Aguardar scripts carregarem
-      await page.waitForFunction(() => {
-        return window.html2canvas && window.jspdf && window.pdfAPIReady;
-      }, { timeout: 30000 });
+      // Aguardar carregamento (como no projeto que funcionou)
+      await new Promise(resolve => setTimeout(resolve, 5000));
 
       console.log('⏳ Aguardando renderização completa...');
-      await page.waitForTimeout(3000);
 
-      // Executar geração de PDF usando o mesmo motor do frontend
-      const pdfBuffer = await page.evaluate(async () => {
-        try {
-          console.log('🎨 Executando geração de PDF no browser...');
-          
-          // Usar a função do frontend
-          const pdfArrayBuffer = await window.generatePDFFromAPI();
-          
-          // Converter para array para retornar
-          return Array.from(new Uint8Array(pdfArrayBuffer));
-        } catch (error) {
-          console.error('Erro na geração:', error);
-          throw error;
+      
+      // Gerar PDF diretamente com Puppeteer (mais confiável)
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '0mm',
+          right: '0mm',
+          bottom: '0mm',
+          left: '0mm'
         }
       });
 
@@ -89,7 +81,7 @@ export class PDFDownloadService {
       
       console.log(`✅ PDF gerado! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
       
-      return Buffer.from(pdfBuffer);
+      return pdfBuffer;
       
     } catch (error) {
       console.error('❌ Erro ao gerar PDF:', error);
