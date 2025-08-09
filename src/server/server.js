@@ -40,11 +40,20 @@ function convertN8NData(n8nData) {
   let nascimentoFormatado = '';
   if (data.nascimento) {
     try {
-      // Converter de DD/MM/YYYY para YYYY-MM-DD
-      const [dia, mes, ano] = data.nascimento.split('/');
-      nascimentoFormatado = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+      // Verificar se a data contém '/'
+      if (data.nascimento.includes('/')) {
+        // Converter de DD/MM/YYYY para YYYY-MM-DD
+        const [dia, mes, ano] = data.nascimento.split('/');
+        if (dia && mes && ano) {
+          nascimentoFormatado = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+        }
+      } else {
+        // Se já estiver no formato YYYY-MM-DD ou outro formato válido
+        nascimentoFormatado = data.nascimento;
+      }
     } catch (error) {
       console.warn('Erro ao converter data:', error);
+      nascimentoFormatado = '';
     }
   }
 
