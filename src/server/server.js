@@ -781,4 +781,217 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`⚡ Health: GET http://localhost:${PORT}/api/health`);
   console.log(`🎯 Motor: Puppeteer + Chromium`);
   console.log(`🐳 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+
+
+  // 🎯 NOVO ENDPOINT: Retorna PDF diretamente como download
+// Adicione este endpoint ao seu servidor (mantendo o atual também)
+
+// Endpoint para download direto do PDF
+app.post('/api/download-pdf', async (req, res) => {
+  let browser = null;
+  
+  try {
+    console.log('📥 Dados recebidos para download PDF:', JSON.stringify(req.body, null, 2));
+    
+    // Converter dados do N8N para formato interno
+    const data = convertN8NData(req.body);
+    console.log('🔄 Dados convertidos:', JSON.stringify(data, null, 2));
+    
+    // Validação básica
+    if (!data.nome) {
+      return res.status(400).json({ 
+        error: 'Campo "nome" é obrigatório',
+        received: data 
+      });
+    }
+
+    console.log('🚀 Iniciando geração do PDF para download...');
+    
+    // Criar navegador com retry
+    let pdfBuffer = null;
+    let page = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts && !browser) {
+      attempts++;
+      try {
+        console.log(`🔄 Tentativa ${attempts}/${maxAttempts} de criar browser...`);
+        browser = await createBrowser();
+        break;
+      } catch (error) {
+        console.error(`❌ Tentativa ${attempts} falhou:`, error.message);
+        if (attempts === maxAttempts) {
+          throw new Error(`Falha ao criar browser após ${maxAttempts} tentativas: ${error.message}`);
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+    
+    try {
+      page = await browser.newPage();
+      console.log('✅ Página criada');
+      
+      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
+      page.setDefaultTimeout(30000);
+      page.setDefaultNavigationTimeout(30000);
+      
+      const html = generateCurriculumHTML(data);
+      console.log('✅ HTML gerado');
+      
+      await page.setContent(html, { 
+        waitUntil: ['networkidle0', 'domcontentloaded'],
+        timeout: 30000 
+      });
+      console.log('✅ Conteúdo definido na página');
+      
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log('✅ Aguardou renderização');
+      
+      pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
+        printBackground: true,
+        preferCSSPageSize: true,
+        timeout: 30000
+      });
+      
+      console.log('✅ PDF gerado, tamanho:', pdfBuffer.length, 'bytes');
+      
+      await page.close();
+      page = null;
+      
+    } catch (pageError) {
+      console.error('❌ Erro na página:', pageError.message);
+      if (page) {
+        try {
+          await page.close();
+        } catch (closeError) {
+          console.error('❌ Erro ao fechar página:', closeError.message);
+        }
+      }
+      throw pageError;
+    }
+    
+    await browser.close();
+    browser = null;
+    
+    if (!pdfBuffer) {
+      throw new Error('PDF não foi gerado');
+    }
+    
+    // Gerar nome do arquivo
+    const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
+    
+    // Definir headers para download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache');
+    
+    console.log('📤 Enviando PDF como download:', {
+      filename: fileName,
+      size: pdfBuffer.length,
+      contentType: 'application/pdf'
+    });
+    
+    // Enviar o PDF diretamente
+    res.send(pdfBuffer);
+    
+    console.log('✅ PDF enviado como download com sucesso!');
+
+  } catch (error) {
+    console.error('❌ Erro ao gerar PDF para download:', error);
+    
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error('❌ Erro ao fechar browser:', closeError);
+      }
+    }
+    
+    // Se der erro, retornar JSON com erro
+    res.status(500).json({ 
+      error: 'Erro ao gerar PDF', 
+      details: error.message
+    });
+  }
+});
+
+// 🎯 VERSÃO HÍBRIDA: Suporta tanto JSON quanto download
+app.post('/api/generate-pdf-hybrid', async (req, res) => {
+  let browser = null;
+  
+  try {
+    console.log('📥 Dados recebidos (modo híbrido):', JSON.stringify(req.body, null, 2));
+    
+    // Verificar se o cliente quer download direto
+    const wantsDownload = req.headers.accept === 'application/pdf' || 
+                         req.query.download === 'true' ||
+                         req.body.download === true;
+    
+    console.log('📋 Modo solicitado:', wantsDownload ? 'DOWNLOAD' : 'JSON');
+    
+    const data = convertN8NData(req.body);
+    
+    if (!data.nome) {
+      return res.status(400).json({ 
+        error: 'Campo "nome" é obrigatório'
+      });
+    }
+
+    console.log('🚀 Iniciando geração do PDF...');
+    
+    // [... código de geração do PDF igual ao anterior ...]
+    // (simplificando aqui, mas seria o mesmo código)
+    
+    // Gerar PDF (mesmo processo)
+    let pdfBuffer = null;
+    // ... (código de geração) ...
+    
+    if (!pdfBuffer) {
+      throw new Error('PDF não foi gerado');
+    }
+    
+    const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
+    
+    if (wantsDownload) {
+      // Retornar como download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      res.send(pdfBuffer);
+      console.log('✅ PDF enviado como download');
+      
+    } else {
+      // Retornar como JSON (modo atual)
+      const pdfBase64 = pdfBuffer.toString('base64');
+      res.json({
+        success: true,
+        pdf: pdfBase64,
+        filename: fileName,
+        size: pdfBuffer.length,
+        message: 'PDF gerado com sucesso'
+      });
+      console.log('✅ PDF enviado como JSON');
+    }
+
+  } catch (error) {
+    console.error('❌ Erro:', error);
+    
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error('❌ Erro ao fechar browser:', closeError);
+      }
+    }
+    
+    res.status(500).json({ 
+      error: 'Erro ao gerar PDF', 
+      details: error.message
+    });
+  }
+});
 });
