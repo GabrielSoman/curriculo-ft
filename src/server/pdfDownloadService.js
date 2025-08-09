@@ -1,638 +1,151 @@
-// RENDERIZADOR QUE USA O PRÓPRIO FRONTEND
-// Em vez de recriar, serve uma página que usa o sistema existente
+// SUB-APLICAÇÃO INTERNA PARA GERAR PDF COMO DOWNLOAD
+// Recebe HTML renderizado e retorna PDF via HTTP
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import puppeteer from 'puppeteer';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export class PDFDownloadService {
+  constructor() {
+    this.browser = null;
+  }
 
-export async function renderPDFViaFrontend(data) {
-  console.log('🚀 MOTOR UNIFICADO: Gerando HTML com CSS puro inline...');
-  
-  try {
-    const distPath = path.join(__dirname, '../../dist');
-    
-              script2.onerror = reject;
-              document.head.appendChild(script2);
-        
-        // Sistema completo de PDF - COPIADO DO FRONTEND
-        window.initPDFSystem = function() {
-          console.log('🚀 Iniciando sistema de PDF...');
-          
-          // Aguardar React carregar e renderizar
-          const waitForReact = () => {
-            return new Promise((resolve, reject) => {
-              let attempts = 0;
-              const maxAttempts = 300; // 30 segundos
-              
-              const checkReact = () => {
-                attempts++;
-                const preview = document.getElementById('curriculo-preview');
-                
-                if (preview && preview.children.length > 0) {
-                  console.log('✅ React renderizado, preview encontrado');
-                  resolve(preview);
-                } else if (attempts >= maxAttempts) {
-                  reject(new Error('Timeout: React não renderizou'));
-                } else {
-                  setTimeout(checkReact, 100);
-                }
-              };
-              checkReact();
-            });
-          };
-          
-          // Carregar dependências
-          const loadDependencies = () => {
-            return new Promise((resolve, reject) => {
-              let loaded = 0;
-              const total = 2;
-              
-              const checkComplete = () => {
-                loaded++;
-                if (loaded === total) {
-                  console.log('✅ html2canvas e jsPDF carregados');
-                  resolve();
-                }
-              };
-              
-              // html2canvas
-              const script1 = document.createElement('script');
-              script1.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
-              script1.onload = checkComplete;
-              script1.onerror = () => reject(new Error('Erro ao carregar html2canvas'));
-              document.head.appendChild(script1);
-              
-              // jsPDF
-              const script2 = document.createElement('script');
-              script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-              script2.onload = checkComplete;
-              script2.onerror = () => reject(new Error('Erro ao carregar jsPDF'));
-              document.head.appendChild(script2);
-            });
-          };
-          
-          // Gerar PDF - EXATAMENTE como no frontend
-          const generatePDF = async (element) => {
-            console.log('📸 Capturando elemento com html2canvas...');
-            
-            const canvas = await html2canvas(element, {
-              scale: 2,
-              useCORS: true,
-              allowTaint: true,
-              backgroundColor: '#ffffff',
-              width: element.scrollWidth,
-              height: element.scrollHeight,
-              windowWidth: element.scrollWidth,
-              windowHeight: element.scrollHeight
-            });
+  async initialize() {
+    try {
+      console.log('🚀 Inicializando Puppeteer para PDF...');
+      
+      this.browser = await puppeteer.launch({
+        headless: 'new',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox'
+        ],
+        executablePath: process.env.CHROME_BIN || null
+      });
+      
+      console.log('✅ Puppeteer inicializado com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('❌ Erro ao inicializar Puppeteer:', error);
+      return false;
+    }
+  }
 
-            console.log('📄 Gerando PDF com jsPDF...');
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            
-            const imgWidth = 210;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            
-            console.log('✅ PDF gerado com sistema do frontend!');
-            return pdf.output('arraybuffer');
-          };
-          
-          // Processo completo
-          const runPDFGeneration = async () => {
-            try {
-              console.log('⏳ Aguardando React renderizar...');
-              const element = await waitForReact();
-              
-              console.log('⏳ Carregando dependências...');
-              await loadDependencies();
-              
-              console.log('⏳ Aguardando renderização completa...');
-              await new Promise(resolve => setTimeout(resolve, 2000));
-              
-              console.log('📄 Gerando PDF...');
-              const pdfArrayBuffer = await generatePDF(element);
-              
-              // Disponibilizar resultado
-              window.PDF_DATA = pdfArrayBuffer;
-              window.PDF_READY = true;
-              
-              console.log('✅ PDF pronto para download!');
-            } catch (error) {
-              console.error('❌ Erro na geração:', error);
-              window.PDF_ERROR = error.message;
-              window.PDF_READY = true; // Sinalizar que terminou (com erro)
-            }
-          };
-          
-          // Iniciar processo
-          runPDFGeneration();
-        };
-        
-        // Iniciar quando DOM carregar
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', window.initPDFSystem);
-        } else {
-          window.initPDFSystem();
+  async generatePDFFromHTML(htmlContent, fileName = 'curriculo.pdf') {
+    try {
+      if (!this.browser) {
+        const initialized = await this.initialize();
+        if (!initialized) {
+          throw new Error('Falha ao inicializar Puppeteer');
         }
-            });
-          }
-          
-          // Aguardar scripts carregarem
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // USAR EXATAMENTE O MESMO CÓDIGO DO FRONTEND
-          const element = document.getElementById('curriculo-preview');
-          if (!element) {
-            throw new Error('Elemento curriculo-preview não encontrado');
-          }
-          
-          console.log('📸 Capturando com html2canvas...');
-          const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            width: element.scrollWidth,
-            height: element.scrollHeight,
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight
-          });
-
-          console.log('📄 Gerando PDF com jsPDF...');
-          const imgData = canvas.toDataURL('image/png');
-          const { jsPDF } = window.jspdf;
-          const pdf = new jsPDF('p', 'mm', 'a4');
-          
-          const imgWidth = 210;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-          
-          console.log('✅ PDF gerado com sistema do frontend!');
-          return pdf.output('arraybuffer');
-        });
-        
-        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
-        return Buffer.from(pdfArrayBuffer);
-          } catch (error) {
-            console.error('❌ Erro ao gerar PDF:', error);
-            throw error;
-          }
-}
-
-export async function generatePDFFromHTML(htmlContent) {
-  console.log('🚀 PUPPETEER: Carregando frontend com sistema de PDF...');
-  
-  let browser;
-  try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu'
-      ]
-    });
-    
-    const page = await browser.newPage();
-    
-    // Configurar página
-    await page.setViewport({ width: 1200, height: 800 });
-    
-    console.log('⏳ Carregando HTML do frontend...');
-    await page.setContent(htmlContent, { 
-      waitUntil: 'networkidle0',
-      timeout: 60000 
-    });
-    
-    console.log('⏳ Aguardando sistema de PDF processar...');
-    await page.waitForFunction(() => window.PDF_READY, { 
-      timeout: 180000 // 3 minutos
-    });
-    
-    // Verificar se houve erro
-    const hasError = await page.evaluate(() => window.PDF_ERROR);
-    if (hasError) {
-      throw new Error(`Erro na geração: ${hasError}`);
-    }
-    
-    console.log('📄 Extraindo PDF gerado...');
-    const pdfArrayBuffer = await page.evaluate(() => {
-      if (!window.PDF_DATA) {
-        throw new Error('PDF_DATA não encontrado');
       }
-      return window.PDF_DATA;
-    });
-    
-    if (!pdfArrayBuffer || pdfArrayBuffer.byteLength === 0) {
-      throw new Error('PDF gerado está vazio');
+
+      console.log('📄 Gerando PDF com Puppeteer...');
+      
+      const page = await this.browser.newPage();
+      
+      // Configuração que funcionou no EasyPanel
+      await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      );
+      
+      // Configurar viewport para A4
+      await page.setViewport({
+        width: 1280,
+        height: 800
+      });
+
+      // Carregar HTML
+      await page.setContent(htmlContent, {
+        waitUntil: ['domcontentloaded', 'networkidle0'],
+        timeout: 60000
+      });
+
+      // Aguardar renderização completa do CSS
+      // Aguardar elementos básicos renderizarem
+      // AGUARDAR RENDERIZAÇÃO COMPLETA DO CSS TAILWIND
+      console.log('⏳ Aguardando CSS Tailwind renderizar completamente...');
+      
+      // Aguardar elementos críticos
+      await page.waitForSelector('#curriculo-preview', { timeout: 30000 });
+      await page.waitForSelector('.profile-avatar', { timeout: 30000 });
+      await page.waitForSelector('.contact-item', { timeout: 30000 });
+      await page.waitForSelector('.sidebar', { timeout: 30000 });
+      await page.waitForSelector('.main-content', { timeout: 30000 });
+      
+      // Aguardar CSS Tailwind ser aplicado completamente
+      await page.waitForFunction(() => {
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        const avatar = document.querySelector('.profile-avatar');
+        const contactItems = document.querySelectorAll('.contact-item');
+        
+        if (!sidebar || !mainContent || !avatar || contactItems.length === 0) return false;
+        
+        // Verificar se CSS foi aplicado corretamente
+        const sidebarStyle = window.getComputedStyle(sidebar);
+        const mainStyle = window.getComputedStyle(mainContent);
+        const avatarStyle = window.getComputedStyle(avatar);
+        const contactStyle = window.getComputedStyle(contactItems[0]);
+        
+        // Verificar propriedades específicas
+        const sidebarHasGradient = sidebarStyle.background.includes('gradient') || sidebarStyle.backgroundImage.includes('gradient');
+        const contactHasBackground = contactStyle.backgroundColor !== 'rgba(0, 0, 0, 0)';
+        
+        return sidebarStyle.width !== 'auto' && 
+               mainStyle.width !== 'auto' && 
+               avatarStyle.borderRadius === '50%' &&
+               (sidebarHasGradient || sidebarStyle.backgroundColor !== 'rgba(0, 0, 0, 0)') &&
+               contactHasBackground;
+      }, { timeout: 30000 });
+
+      // TEMPO EXTRA PARA GARANTIR RENDERIZAÇÃO PERFEITA
+      console.log('⏳ Aguardando renderização perfeita (15 segundos)...');
+      await new Promise(resolve => setTimeout(resolve, 15000));
+
+      console.log('⏳ Aguardando renderização completa...');
+
+      
+      // Gerar PDF com configurações otimizadas
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        preferCSSPageSize: false,
+        displayHeaderFooter: false,
+        margin: {
+          top: '0mm',
+          right: '0mm',
+          bottom: '0mm',
+          left: '0mm'
+        },
+        width: '210mm',
+        height: '297mm'
+      });
+
+      await page.close();
+      
+      console.log(`✅ PDF gerado! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
+      
+     // GARANTIR que retorna Buffer binário, não JSON
+     if (!(pdfBuffer instanceof Buffer)) {
+       console.log('⚠️ Convertendo para Buffer...');
+       return Buffer.from(pdfBuffer);
+     }
+     
+      return pdfBuffer;
+      
+    } catch (error) {
+      console.error('❌ Erro ao gerar PDF:', error);
+      throw error;
     }
-    
-    const pdfBuffer = Buffer.from(pdfArrayBuffer);
-    console.log(`✅ PDF extraído com sistema do frontend! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
-    
-    return pdfBuffer;
-    
-  } catch (error) {
-    console.error('❌ Erro no sistema frontend:', error.message);
-    throw error;
-  } finally {
-    if (browser) {
-      await browser.close();
+  }
+
+  async close() {
+    if (this.browser) {
+      await this.browser.close();
+      this.browser = null;
+      console.log('🔒 Puppeteer fechado');
     }
   }
 }
 
-// Função para gerar HTML unificado com CSS puro inline
-function generateUnifiedHTML(data) {
-  return `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Currículo - ${data.nome}</title>
-    <style>
-        /* RESET E BASE */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-print-color-adjust: exact;
-            color-adjust: exact;
-        }
-        
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #ffffff;
-            font-size: 11px;
-            line-height: 1.5;
-            color: #333333;
-        }
-        
-        /* CONTAINER PRINCIPAL */
-        #curriculum {
-            width: 794px;  /* 210mm */
-            height: 1123px; /* 297mm */
-            margin: 0;
-            background: white;
-            display: flex;
-            position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            transform-origin: top left;
-        }
-        
-        /* SIDEBAR */
-        .sidebar {
-            width: 264px; /* 1/3 de 794px */
-            background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%);
-            color: white;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* PADRÕES DE FUNDO */
-        .sidebar::before {
-            content: '';
-            position: absolute;
-            top: -64px;
-            left: -64px;
-            width: 128px;
-            height: 128px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
-        
-        .sidebar::after {
-            content: '';
-            position: absolute;
-            bottom: -48px;
-            right: -48px;
-            width: 96px;
-            height: 96px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
-        
-        /* SEÇÃO DO PERFIL */
-        .profile-section {
-            text-align: center;
-            margin-bottom: 24px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        /* AVATAR COM PADRÃO GEOMÉTRICO */
-        .profile-avatar {
-            width: 96px;
-            height: 96px;
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
-            border-radius: 50%;
-            margin: 0 auto 12px;
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(4px);
-        }
-        
-        /* PADRÕES GEOMÉTRICOS */
-        .avatar-pattern { width: 64px; height: 64px; position: relative; }
-        .pattern-1 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(251, 191, 36, 0.4); border-radius: 50%; }
-        .pattern-2 { position: absolute; top: 8px; left: 8px; width: 48px; height: 48px; background: rgba(251, 191, 36, 0.3); border-radius: 50%; }
-        .pattern-3 { position: absolute; top: 16px; left: 16px; width: 32px; height: 32px; background: rgba(251, 191, 36, 0.5); border-radius: 50%; }
-        .pattern-4 { position: absolute; top: 24px; left: 24px; width: 16px; height: 16px; background: rgba(251, 191, 36, 0.7); border-radius: 50%; }
-        .pattern-5 { position: absolute; top: 4px; right: 4px; width: 12px; height: 12px; background: rgba(251, 191, 36, 0.6); border-radius: 2px; transform: rotate(45deg); }
-        .pattern-6 { position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; background: rgba(251, 191, 36, 0.6); border-radius: 2px; transform: rotate(45deg); }
-        .pattern-7 { position: absolute; bottom: 4px; right: 4px; width: 8px; height: 8px; background: rgba(251, 191, 36, 0.8); border-radius: 50%; }
-        
-        /* NOME */
-        .profile-name {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-            color: white;
-        }
-        
-        /* SEÇÕES DA SIDEBAR */
-        .sidebar-section {
-            margin-bottom: 24px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .sidebar-title {
-            font-size: 10px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
-            padding-bottom: 8px;
-            letter-spacing: 1.5px;
-            color: white;
-        }
-        
-        /* ITEMS DE CONTATO */
-        .contact-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px;
-            border-radius: 8px;
-            backdrop-filter: blur(4px);
-        }
-        
-        .contact-icon {
-            width: 16px;
-            height: 16px;
-            margin-right: 12px;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        
-        .contact-text {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 10px;
-            flex: 1;
-        }
-        
-        /* CORES DOS ÍCONES */
-        .icon-email { stroke: #67e8f9; }
-        .icon-phone { stroke: #fde047; }
-        .icon-location { stroke: #67e8f9; }
-        
-        /* DADOS PESSOAIS */
-        .personal-data {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            border-radius: 8px;
-            backdrop-filter: blur(4px);
-        }
-        
-        .personal-item {
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 8px;
-            font-size: 10px;
-        }
-        
-        .personal-label {
-            color: #67e8f9;
-            font-weight: bold;
-        }
-        
-        /* DISPONIBILIDADE */
-        .availability-box {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            border-radius: 8px;
-            backdrop-filter: blur(4px);
-        }
-        
-        .availability-text {
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            font-size: 10px;
-        }
-        
-        /* CONTEÚDO PRINCIPAL */
-        .main-content {
-            width: 530px; /* 2/3 de 794px */
-            padding: 24px;
-            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
-        }
-        
-        .content-section {
-            margin-bottom: 24px;
-        }
-        
-        /* TÍTULOS DAS SEÇÕES */
-        .content-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #374151;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            position: relative;
-        }
-        
-        .title-text {
-            color: #0f766e;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-        }
-        
-        .content-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 48px;
-            height: 4px;
-            background: linear-gradient(90deg, #0f766e 0%, #0891b2 100%);
-            border-radius: 2px;
-        }
-        
-        /* CAIXAS DE CONTEÚDO */
-        .content-box {
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid #0f766e;
-        }
-        
-        .content-box.education { border-left-color: #0f766e; }
-        .content-box.experience { border-left-color: #0891b2; }
-        .content-box.courses { border-left-color: #3b82f6; }
-        
-        /* TEXTOS */
-        .content-text {
-            font-size: 11px;
-            color: #374151;
-            line-height: 1.6;
-            white-space: pre-line;
-        }
-        
-        .education-title {
-            font-weight: bold;
-            color: #374151;
-            font-size: 12px;
-            margin-bottom: 4px;
-        }
-        
-        .education-institution {
-            color: #6b7280;
-            font-weight: 500;
-            font-size: 11px;
-        }
-    </style>
-</head>
-<body>
-    <div id="curriculum">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="profile-section">
-                <div class="profile-avatar">
-                    <div class="avatar-pattern">
-                        <div class="pattern-1"></div>
-                        <div class="pattern-2"></div>
-                        <div class="pattern-3"></div>
-                        <div class="pattern-4"></div>
-                        <div class="pattern-5"></div>
-                        <div class="pattern-6"></div>
-                        <div class="pattern-7"></div>
-                    </div>
-                </div>
-                <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
-            </div>
-            
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">CONTATO</h3>
-                ${data.email ? `
-                <div class="contact-item">
-                    <svg class="contact-icon icon-email" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                        <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
-                    <span class="contact-text">${data.email}</span>
-                </div>
-                ` : ''}
-                ${data.telefone ? `
-                <div class="contact-item">
-                    <svg class="contact-icon icon-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                    </svg>
-                    <span class="contact-text">${data.telefone}</span>
-                </div>
-                ` : ''}
-                ${data.endereco ? `
-                <div class="contact-item">
-                    <svg class="contact-icon icon-location" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <div class="contact-text">
-                        <div style="font-weight: 500;">${data.endereco}</div>
-                        <div>${data.cidade}, ${data.estado}</div>
-                        <div style="color: rgba(255,255,255,0.7);">${data.cep}</div>
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-            
-            ${(data.cpf || data.rg || data.nascimento) ? `
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">DADOS PESSOAIS</h3>
-                <div class="personal-data">
-                    ${data.cpf ? `<div class="personal-item"><span class="personal-label">CPF:</span> ${data.cpf}</div>` : ''}
-                    ${data.rg ? `<div class="personal-item"><span class="personal-label">RG:</span> ${data.rg}</div>` : ''}
-                    ${data.nascimento ? `<div class="personal-item"><span class="personal-label">Nascimento:</span> ${new Date(data.nascimento).toLocaleDateString('pt-BR')}</div>` : ''}
-                </div>
-            </div>
-            ` : ''}
-            
-            ${data.disponibilidade ? `
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">DISPONIBILIDADE</h3>
-                <div class="availability-box">
-                    <div class="availability-text">${data.disponibilidade}</div>
-                </div>
-            </div>
-            ` : ''}
-        </div>
-        
-        <!-- Conteúdo Principal -->
-        <div class="main-content">
-            ${data.escolaridade ? `
-            <div class="content-section">
-                <h3 class="content-title">
-                    <span class="title-text">EDUCAÇÃO</span>
-                </h3>
-                <div class="content-box education">
-                    <div class="education-title">${data.escolaridade}</div>
-                    ${data.instituicao ? `<div class="education-institution">${data.instituicao}</div>` : ''}
-                </div>
-            </div>
-            ` : ''}
-            
-            ${data.experiencia ? `
-            <div class="content-section">
-                <h3 class="content-title">
-                    <span class="title-text">EXPERIÊNCIA PROFISSIONAL</span>
-                </h3>
-                <div class="content-box experience">
-                    <div class="content-text">${data.experiencia}</div>
-                </div>
-            </div>
-            ` : ''}
-            
-            ${data.cursos ? `
-            <div class="content-section">
-                <h3 class="content-title">
-                    <span class="title-text">CURSOS E CERTIFICAÇÕES</span>
-                </h3>
-                <div class="content-box courses">
-                    <div class="content-text">${data.cursos}</div>
-                </div>
-            </div>
-            ` : ''}
-        </div>
-    </div>
-</body>
-</html>`;
-}
+// Instância singleton
+export const pdfService = new PDFDownloadService();
