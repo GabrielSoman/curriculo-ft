@@ -3,14 +3,12 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { JSDOM } from 'jsdom';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import puppeteer from 'puppeteer-core';
 
 const app = express();
 const PORT = process.env.PORT || 80;
 
-// Basic middleware
+// Middleware
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -18,13 +16,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 
-// Log middleware para debug
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
-
-// Função para converter dados do N8N para formato interno
+// Converter dados do N8N
 function convertN8NData(n8nData) {
   let data;
   
@@ -37,7 +29,7 @@ function convertN8NData(n8nData) {
   }
   
   if (!data) {
-    throw new Error('Dados não encontrados no formato esperado');
+    throw new Error('Dados não encontrados');
   }
 
   // Converter formato de data
@@ -54,7 +46,6 @@ function convertN8NData(n8nData) {
       }
     } catch (error) {
       console.warn('Erro ao converter data:', error);
-      nascimentoFormatado = '';
     }
   }
 
@@ -78,244 +69,160 @@ function convertN8NData(n8nData) {
   };
 }
 
-// Gerar HTML do currículo (mesmo template do CurriculumPreview.tsx)
-function generateCurriculumHTML(data) {
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('pt-BR');
-    } catch {
-      return dateStr;
-    }
+// Criar browser Puppeteer
+async function createBrowser() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  const browserOptions = {
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--single-process'
+    ]
   };
 
-  return `
-    <div id="curriculo-preview" style="
-      width: 794px; 
-      height: 1123px; 
-      font-size: 11px; 
-      line-height: 1.5; 
-      font-family: system-ui, -apple-system, sans-serif;
-      background: white;
-      margin: 0;
-      padding: 0;
-      display: flex;
-    ">
-      <div style="display: flex; height: 100%; width: 100%;">
-        <!-- Sidebar -->
-        <div style="
-          width: 33.333%;
-          background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%);
-          color: white;
-          padding: 24px;
-          position: relative;
-          overflow: hidden;
-        ">
-          <div style="text-align: center; margin-bottom: 24px;">
-            <div style="
-              width: 96px;
-              height: 96px;
-              background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(255, 255, 255, 0.1));
-              border-radius: 50%;
-              margin: 0 auto 12px;
-              border: 2px solid rgba(255, 255, 255, 0.4);
-            "></div>
-            <h1 style="font-size: 20px; font-weight: bold; margin: 8px 0;">${data.nome || 'Seu Nome'}</h1>
-          </div>
+  if (isProduction) {
+    const possiblePaths = [
+      '/usr/bin/chromium-browser',
+      '/usr/bin/chromium',
+      '/usr/bin/google-chrome'
+    ];
+    
+    for (const path of possiblePaths) {
+      if (fs.existsSync(path)) {
+        browserOptions.executablePath = path;
+        break;
+      }
+    }
+  }
 
-          <div style="margin-bottom: 24px;">
-            <h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px; border-bottom: 2px solid rgba(255, 255, 255, 0.4); padding-bottom: 8px; letter-spacing: 0.1em;">CONTATO</h3>
-            <div style="font-size: 12px;">
-              ${data.email ? `
-                <div style="background: rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 8px; margin-bottom: 12px;">
-                  <span>✉ ${data.email}</span>
-                </div>
-              ` : ''}
-              ${data.telefone ? `
-                <div style="background: rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 8px; margin-bottom: 12px;">
-                  <span>📞 ${data.telefone}</span>
-                </div>
-              ` : ''}
-              ${data.endereco ? `
-                <div style="background: rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 8px; margin-bottom: 12px;">
-                  <div>📍 ${data.endereco}</div>
-                  ${data.cidade && data.estado ? `<div>${data.cidade}, ${data.estado}</div>` : ''}
-                  ${data.cep ? `<div style="opacity: 0.7;">${data.cep}</div>` : ''}
-                </div>
-              ` : ''}
-            </div>
-          </div>
-
-          ${data.cpf || data.rg || data.nascimento ? `
-            <div style="margin-bottom: 24px;">
-              <h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px; border-bottom: 2px solid rgba(255, 255, 255, 0.4); padding-bottom: 8px; letter-spacing: 0.1em;">DADOS PESSOAIS</h3>
-              <div style="background: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; font-size: 12px;">
-                ${data.cpf ? `<div style="margin-bottom: 8px;"><strong>CPF:</strong> ${data.cpf}</div>` : ''}
-                ${data.rg ? `<div style="margin-bottom: 8px;"><strong>RG:</strong> ${data.rg}</div>` : ''}
-                ${data.nascimento ? `<div><strong>Nascimento:</strong> ${formatDate(data.nascimento)}</div>` : ''}
-              </div>
-            </div>
-          ` : ''}
-
-          <div>
-            <h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px; border-bottom: 2px solid rgba(255, 255, 255, 0.4); padding-bottom: 8px; letter-spacing: 0.1em;">DISPONIBILIDADE</h3>
-            <div style="background: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; text-align: center;">
-              <div style="font-weight: 600; font-size: 12px;">${data.disponibilidade || 'Não informado'}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Conteúdo Principal -->
-        <div style="
-          width: 66.667%;
-          padding: 24px;
-          background: linear-gradient(135deg, #f9fafb, white);
-        ">
-          ${data.escolaridade ? `
-            <div style="margin-bottom: 24px;">
-              <h3 style="font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 3px solid #0f766e;">EDUCAÇÃO</h3>
-              <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #0f766e;">
-                <div style="font-weight: bold; color: #1e293b; font-size: 14px;">${data.escolaridade}</div>
-                ${data.instituicao ? `<div style="color: #666; margin-top: 4px;">${data.instituicao}</div>` : ''}
-              </div>
-            </div>
-          ` : ''}
-
-          ${data.experiencia ? `
-            <div style="margin-bottom: 24px;">
-              <h3 style="font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 3px solid #0891b2;">EXPERIÊNCIA PROFISSIONAL</h3>
-              <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #0891b2;">
-                <div style="white-space: pre-line; color: #374151; line-height: 1.6; font-size: 14px;">${data.experiencia}</div>
-              </div>
-            </div>
-          ` : ''}
-
-          ${data.cursos ? `
-            <div>
-              <h3 style="font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 3px solid #3b82f6;">CURSOS E CERTIFICAÇÕES</h3>
-              <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #3b82f6;">
-                <div style="white-space: pre-line; color: #374151; line-height: 1.6; font-size: 14px;">${data.cursos}</div>
-              </div>
-            </div>
-          ` : ''}
-        </div>
-      </div>
-    </div>
-  `;
+  return await puppeteer.launch(browserOptions);
 }
 
-// ENDPOINT PRINCIPAL - USA O MESMO MOTOR DO FRONTEND
+// ENDPOINT PRINCIPAL - USA O FRONTEND PARA GERAR PDF
 app.post('/api/generate-pdf', async (req, res) => {
+  let browser = null;
+  let page = null;
+  
   try {
-    console.log('📥 Dados recebidos:', JSON.stringify(req.body, null, 2));
+    console.log('📥 Dados recebidos via API');
     
-    // Converter dados
     const data = convertN8NData(req.body);
-    console.log('🔄 Dados convertidos:', JSON.stringify(data, null, 2));
     
     if (!data.nome) {
       return res.status(400).json({ 
-        error: 'Campo "nome" é obrigatório',
-        received: data 
+        error: 'Campo "nome" é obrigatório' 
       });
     }
 
-    // Gerar HTML
-    const html = generateCurriculumHTML(data);
+    console.log('🚀 Abrindo frontend para gerar PDF...');
     
-    // Criar DOM virtual
-    const dom = new JSDOM(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { margin: 0; padding: 0; }
-          </style>
-        </head>
-        <body>
-          ${html}
-        </body>
-      </html>
-    `, {
-      pretendToBeVisual: true,
-      resources: 'usable'
+    // Criar browser
+    browser = await createBrowser();
+    page = await browser.newPage();
+    
+    // Abrir o próprio frontend
+    await page.goto(`http://localhost:${PORT}`, {
+      waitUntil: 'networkidle0'
     });
-
-    global.window = dom.window;
-    global.document = dom.window.document;
-    global.navigator = dom.window.navigator;
-
-    // Aguardar renderização
+    
+    console.log('✅ Frontend carregado');
+    
+    // Preencher os campos do formulário usando o frontend real
+    await page.evaluate((formData) => {
+      // Simular preenchimento dos campos
+      const setInputValue = (name, value) => {
+        const input = document.querySelector(`input[name="${name}"], textarea[name="${name}"]`);
+        if (input) {
+          input.value = value;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+      
+      // Preencher todos os campos
+      Object.entries(formData).forEach(([key, value]) => {
+        setInputValue(key, value);
+      });
+      
+    }, data);
+    
+    console.log('✅ Dados preenchidos no formulário');
+    
+    // Aguardar um pouco para React processar
     await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Capturar elemento
-    const element = dom.window.document.getElementById('curriculo-preview');
     
-    if (!element) {
-      throw new Error('Elemento de preview não encontrado');
-    }
-
-    // Simular o html2canvas (como não funciona no servidor, vamos direto pro PDF)
-    // Usando uma abordagem alternativa: converter HTML direto para PDF
+    // Clicar no botão de visualizar
+    await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const visualizarBtn = buttons.find(btn => btn.textContent?.includes('Visualizar'));
+      if (visualizarBtn) visualizarBtn.click();
+    });
     
-    // Como html2canvas não funciona no servidor, vamos usar uma estratégia diferente
-    // Vamos retornar o HTML e deixar o cliente gerar o PDF
-    // OU usar Puppeteer apenas para esta conversão específica
+    console.log('✅ Preview gerado');
     
-    // Por enquanto, vamos usar a abordagem de retornar o HTML formatado
+    // Aguardar preview renderizar
+    await page.waitForSelector('#curriculo-preview', { timeout: 5000 });
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Agora usar o motor do frontend para gerar o PDF
+    const pdfData = await page.evaluate(async () => {
+      // Esta função roda no contexto do browser
+      const element = document.getElementById('curriculo-preview');
+      if (!element) throw new Error('Preview não encontrado');
+      
+      // Importar as funções (assumindo que estão globais ou podemos acessá-las)
+      // Como estamos no contexto do frontend, html2canvas e jsPDF já estão disponíveis
+      
+      // Usar html2canvas (já carregado no frontend)
+      const canvas = await window.html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      // Converter para PDF usando jsPDF (já carregado no frontend)
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new window.jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      // Retornar como base64
+      return pdf.output('datauristring').split(',')[1];
+    });
+    
+    console.log('✅ PDF gerado pelo frontend');
+    
+    // Fechar browser
+    await page.close();
+    await browser.close();
+    
+    // Retornar o PDF
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
     
-    // Retornar HTML para o cliente processar
     res.json({
       success: true,
-      html: html,
+      pdf: pdfData,
       filename: fileName,
-      message: 'HTML gerado com sucesso para conversão em PDF',
-      data: data
+      message: 'PDF gerado com sucesso usando o motor do frontend'
     });
-
+    
   } catch (error) {
     console.error('❌ Erro:', error);
+    
+    if (page) await page.close().catch(() => {});
+    if (browser) await browser.close().catch(() => {});
+    
     res.status(500).json({ 
-      error: 'Erro ao processar dados', 
+      error: 'Erro ao gerar PDF', 
       details: error.message 
     });
-  }
-});
-
-// ALTERNATIVA: Endpoint que usa exatamente a mesma lógica do frontend
-app.post('/api/generate-pdf-unified', async (req, res) => {
-  try {
-    const data = convertN8NData(req.body);
-    
-    if (!data.nome) {
-      return res.status(400).json({ error: 'Nome é obrigatório' });
-    }
-
-    // Como o motor real (html2canvas + jsPDF) só funciona no browser,
-    // vamos fazer uma chamada para o próprio frontend gerar
-    // Isso mantém 100% de compatibilidade
-    
-    const frontendUrl = `http://localhost:${PORT}`;
-    
-    // Retornar instruções para o N8N
-    res.json({
-      success: true,
-      message: 'Use o frontend para gerar o PDF',
-      instructions: {
-        method: 'POST',
-        url: `${frontendUrl}/api/frontend-pdf`,
-        data: data
-      },
-      data: data
-    });
-    
-  } catch (error) {
-    console.error('❌ Erro:', error);
-    res.status(500).json({ error: error.message });
   }
 });
 
@@ -323,22 +230,8 @@ app.post('/api/generate-pdf-unified', async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok',
-    timestamp: new Date().toISOString(),
-    version: '2.0.0',
-    engine: 'html2canvas + jsPDF (mesma do frontend)',
-    note: 'Motor unificado com frontend'
-  });
-});
-
-// Status
-app.get('/api/status', (req, res) => {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const distPath = path.join(__dirname, '../../dist');
-  
-  res.json({
-    engine: 'Unified with frontend (html2canvas + jsPDF)',
-    buildExists: fs.existsSync(distPath),
-    port: PORT
+    engine: 'Frontend Engine (html2canvas + jsPDF)',
+    method: 'Puppeteer abre o frontend e usa o motor existente'
   });
 });
 
@@ -358,9 +251,4 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📄 Interface: http://localhost:${PORT}`);
-  console.log(`🔗 API: POST http://localhost:${PORT}/api/generate-pdf`);
-  console.log(`⚡ Health: GET http://localhost:${PORT}/api/health`);
-  console.log(`🎯 Motor: MESMO DO FRONTEND (html2canvas + jsPDF)`);
-  console.log(`✨ 100% compatível com o frontend`);
-});
+  console.log(`🎯 USANDO
