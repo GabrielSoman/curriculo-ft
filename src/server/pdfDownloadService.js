@@ -13,18 +13,8 @@ export async function renderPDFViaFrontend(data) {
   try {
     const distPath = path.join(__dirname, '../../dist');
     
-    if (result.error) {
-      throw new Error(`Erro na geração do PDF: ${result.error}`);
-            });
-          }
-    if (!result.ready || !result.hasData) {
-          if (!window.jspdf) {
-            await new Promise((resolve, reject) => {
-              const script2 = document.createElement('script');
-              script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-              script2.onload = resolve;
-    // Obter o PDF gerado pelo sistema do frontend
-    const pdfArrayBuffer = await page.evaluate(() => window.PDF_DATA);
+              script2.onerror = reject;
+              document.head.appendChild(script2);
             });
           }
           
