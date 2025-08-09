@@ -527,7 +527,6 @@ app.post('/api/generate-pdf', async (req, res) => {
     console.log('🚀 Iniciando geração do PDF...');
     
     // Criar navegador com retry
-    let browser = null;
     let pdfBuffer = null;
     let page = null;
     let attempts = 0;
@@ -548,9 +547,6 @@ app.post('/api/generate-pdf', async (req, res) => {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
-    
-    let browser = null;
-    let pdfBuffer = null;
     
     try {
       page = await browser.newPage();
@@ -605,6 +601,10 @@ app.post('/api/generate-pdf', async (req, res) => {
       throw pageError;
     }
     
+    // Fechar browser
+    await browser.close();
+    browser = null;
+    
     // Verificar se PDF foi gerado
     if (!pdfBuffer) {
       throw new Error('PDF não foi gerado');
@@ -649,8 +649,8 @@ app.post('/api/generate-pdf', async (req, res) => {
 app.get('/api/health', async (req, res) => {
   try {
     // Testar se o Puppeteer consegue criar um browser
-    const browser = await createBrowser();
-    await browser.close();
+    const healthBrowser = await createBrowser();
+    await healthBrowser.close();
     
     res.json({ 
       status: 'ok', 
