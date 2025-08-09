@@ -13,55 +13,116 @@ export async function renderPDFViaFrontend(data) {
   try {
     const distPath = path.join(__dirname, '../../dist');
     
-              document.head.appendChild(script1);
-            });
-          }
-          
-          if (!window.jspdf) {
-            await new Promise((resolve, reject) => {
-              const script2 = document.createElement('script');
-              script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    console.log('📤 PDF enviado! USANDO EXATAMENTE O SISTEMA DO FRONTEND!');
-              script2.onerror = reject;
-              document.head.appendChild(script2);
-    console.error('❌ Erro no sistema frontend:', error.message);
-          }
-    console.log(`✅ PDF gerado com sistema do frontend! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
-          // Aguardar scripts carregarem
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        error: 'Erro no sistema frontend de PDF', 
-          // USAR EXATAMENTE O MESMO CÓDIGO DO FRONTEND
-          const element = document.getElementById('curriculo-preview');
-          if (!element) {
-            throw new Error('Elemento curriculo-preview não encontrado');
-          }
-          
-          console.log('📸 Capturando com html2canvas...');
-          const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            width: element.scrollWidth,
-            height: element.scrollHeight,
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight
-          });
-
-          console.log('📄 Gerando PDF com jsPDF...');
-          const imgData = canvas.toDataURL('image/png');
-          const { jsPDF } = window.jspdf;
-          const pdf = new jsPDF('p', 'mm', 'a4');
-          
-          const imgWidth = 210;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-          
-          console.log('✅ PDF gerado com sistema do frontend!');
-          return pdf.output('arraybuffer');
+    // Gerar HTML unificado
+    const html = generateUnifiedHTML(data);
+    
+    // Usar Puppeteer para renderizar
+    const puppeteer = await import('puppeteer');
+    const browser = await puppeteer.default.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    
+    // Configurar página
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    
+    // Aguardar scripts carregarem
+    await page.evaluate(async () => {
+      // Carregar html2canvas
+      if (!window.html2canvas) {
+        await new Promise((resolve, reject) => {
+          const script1 = document.createElement('script');
+          script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          script1.onload = resolve;
+          script1.onerror = reject;
+          document.head.appendChild(script1);
         });
-          }
+      }
+      
+      if (!window.jspdf) {
+        await new Promise((resolve, reject) => {
+          const script2 = document.createElement('script');
+          script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          script2.onload = resolve;
+          script2.onerror = reject;
+          document.head.appendChild(script2);
+        });
+      }
+      
+      // Aguardar scripts carregarem
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // USAR EXATAMENTE O MESMO CÓDIGO DO FRONTEND
+      const element = document.getElementById('curriculum');
+      if (!element) {
+        throw new Error('Elemento curriculum não encontrado');
+      }
+      
+      console.log('📸 Capturando com html2canvas...');
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      });
+
+      console.log('📄 Gerando PDF com jsPDF...');
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      console.log('✅ PDF gerado com sistema do frontend!');
+      return pdf.output('arraybuffer');
+    });
+    
+    const pdfArrayBuffer = await page.evaluate(async () => {
+      const element = document.getElementById('curriculum');
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      return pdf.output('arraybuffer');
+    });
+    
+    await browser.close();
+    
+    const pdfBuffer = Buffer.from(pdfArrayBuffer);
+    console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
+    console.log(`✅ PDF gerado com sistema do frontend! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
+    console.log('📤 PDF enviado! USANDO EXATAMENTE O SISTEMA DO FRONTEND!');
+    return pdfBuffer;
+    
+  } catch (error) {
+    console.error('❌ Erro no sistema frontend:', error.message);
+    throw {
+      error: 'Erro no sistema frontend de PDF',
+      details: error.message
+    };
+  }
+}
+
 // Função para gerar HTML unificado com CSS puro inline
 function generateUnifiedHTML(data) {
   return `
@@ -345,6 +406,12 @@ function generateUnifiedHTML(data) {
                         <div class="pattern-4"></div>
                         <div class="pattern-5"></div>
                         <div class="pattern-6"></div>
+                        <div class="pattern-7"></div>
+                    </div>
+                </div>
+                <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
+            </div>
+            
             <div class="sidebar-section">
                 <h3 class="sidebar-title">CONTATO</h3>
                 ${data.email ? `
@@ -378,7 +445,7 @@ function generateUnifiedHTML(data) {
                 </div>
                 ` : ''}
             </div>
-                        <div class="pattern-7"></div>
+            
             ${(data.cpf || data.rg || data.nascimento) ? `
             <div class="sidebar-section">
                 <h3 class="sidebar-title">DADOS PESSOAIS</h3>
@@ -389,7 +456,7 @@ function generateUnifiedHTML(data) {
                 </div>
             </div>
             ` : ''}
-                    </div>
+            
             ${data.disponibilidade ? `
             <div class="sidebar-section">
                 <h3 class="sidebar-title">DISPONIBILIDADE</h3>
@@ -399,7 +466,7 @@ function generateUnifiedHTML(data) {
             </div>
             ` : ''}
         </div>
-                </div>
+        
         <!-- Conteúdo Principal -->
         <div class="main-content">
             ${data.escolaridade ? `
@@ -413,7 +480,7 @@ function generateUnifiedHTML(data) {
                 </div>
             </div>
             ` : ''}
-                <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
+            
             ${data.experiencia ? `
             <div class="content-section">
                 <h3 class="content-title">
@@ -423,8 +490,8 @@ function generateUnifiedHTML(data) {
                     <div class="content-text">${data.experiencia}</div>
                 </div>
             </div>
-        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
-        return Buffer.from(pdfArrayBuffer);
+            ` : ''}
+            
             ${data.cursos ? `
             <div class="content-section">
                 <h3 class="content-title">
