@@ -39,7 +39,7 @@ export function generateSyncedHTML(data) {
     <style>
         ${compiledCSS}
         
-        /* FORÇAR RENDERIZAÇÃO IDÊNTICA AO FRONTEND */
+        /* SINCRONIZAÇÃO PERFEITA COM FRONTEND */
         * {
             box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
@@ -64,217 +64,60 @@ export function generateSyncedHTML(data) {
             font-family: system-ui, -apple-system, sans-serif !important;
             transform: scale(1) !important;
             transform-origin: top left !important;
-        }
-        
-        /* FORÇAR LAYOUT FLEX - CRÍTICO! */
-        .flex {
-            display: flex !important;
-        }
-        
-        .h-full {
-            height: 100% !important;
-        }
-        
-        .w-1\\/3 {
-            width: 33.333333% !important;
-            flex: none !important;
-        }
-        
-        .w-2\\/3 {
-            width: 66.666667% !important;
-            flex: none !important;
-        }
-        
-        /* SIDEBAR - FORÇAR ESTILO COMPLETO */
-        .bg-gradient-to-br.from-slate-800.via-teal-800.to-cyan-800 {
-            background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%) !important;
-        }
-        
-        .text-white {
-            color: white !important;
-        }
-        
-        .p-6 {
-            padding: 1.5rem !important;
-        }
-        
-        .relative {
-            position: relative !important;
-        }
-        
-        .overflow-hidden {
+            background: white !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+            margin: 0 auto !important;
             overflow: hidden !important;
         }
         
-        /* MAIN CONTENT - FORÇAR ESTILO */
-        .bg-gradient-to-br.from-gray-50.to-white {
-            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%) !important;
-        }
-        
-        /* ESPAÇAMENTOS */
-        .space-y-6 > * + * {
-            margin-top: 1.5rem !important;
-        }
-        
-        .space-y-3 > * + * {
-            margin-top: 0.75rem !important;
-        }
-        
-        .mb-6 {
-            margin-bottom: 1.5rem !important;
-        }
-        
-        .mb-3 {
-            margin-bottom: 0.75rem !important;
-        }
-        
-        .mb-2 {
-            margin-bottom: 0.5rem !important;
-        }
-        
-        /* TEXTOS */
-        .text-xl {
-            font-size: 1.25rem !important;
-            line-height: 1.75rem !important;
-        }
-        
-        .text-lg {
-            font-size: 1.125rem !important;
-            line-height: 1.75rem !important;
-        }
-        
-        .text-sm {
-            font-size: 0.875rem !important;
-            line-height: 1.25rem !important;
-        }
-        
-        .text-xs {
-            font-size: 0.75rem !important;
-            line-height: 1rem !important;
-        }
-        
-        .font-bold {
-            font-weight: 700 !important;
-        }
-        
-        .font-extrabold {
-            font-weight: 800 !important;
-        }
-        
-        .font-medium {
-            font-weight: 500 !important;
-        }
-        
-        /* CORES DE TEXTO */
-        .text-gray-800 {
-            color: #1f2937 !important;
-        }
-        
-        .text-gray-700 {
-            color: #374151 !important;
-        }
-        
-        .text-gray-600 {
-            color: #4b5563 !important;
-        }
-        
-        .text-teal-800 {
-            color: #0f766e !important;
-        }
-        
-        .text-cyan-200 {
-            color: #a5f3fc !important;
-        }
-        
-        .text-yellow-300 {
-            color: #fde047 !important;
-        }
-        
-        .text-cyan-300 {
-            color: #67e8f9 !important;
-        }
-        
-        /* BACKGROUNDS */
-        .bg-white {
-            background-color: white !important;
-        }
-        
-        .bg-white\\/10 {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        /* BORDAS E CANTOS */
-        .rounded-lg {
-            border-radius: 0.5rem !important;
-        }
-        
-        .rounded-full {
-            border-radius: 9999px !important;
-        }
-        
-        .border-l-4 {
-            border-left-width: 4px !important;
-        }
-        
-        .border-teal-800 {
-            border-color: #0f766e !important;
-        }
-        
-        .border-cyan-600 {
-            border-color: #0891b2 !important;
-        }
-        
-        .border-blue-500 {
-            border-color: #3b82f6 !important;
-        }
-        
-        /* SOMBRAS */
-        .shadow-sm {
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
-        }
-        
-        .shadow-2xl {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-        }
-        
-        /* POSICIONAMENTO */
-        .absolute {
-            position: absolute !important;
-        }
-        
-        .inset-0 {
-            top: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            left: 0 !important;
-        }
-        
-        .z-10 {
-            z-index: 10 !important;
-        }
-        
-        /* FLEXBOX */
-        .flex {
+        /* LAYOUT FLEX - CRÍTICO! */
+        .curriculum-flex {
             display: flex !important;
+            height: 100% !important;
         }
         
-        .items-center {
-            align-items: center !important;
+        /* SIDEBAR - 1/3 DA LARGURA */
+        .sidebar {
+            width: 33.333333% !important;
+            background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%) !important;
+            color: white !important;
+            padding: 24px !important;
+            position: relative !important;
+            overflow: hidden !important;
         }
         
-        .items-start {
-            align-items: flex-start !important;
+        /* PADRÕES DE FUNDO DA SIDEBAR */
+        .sidebar::before {
+            content: '' !important;
+            position: absolute !important;
+            top: -64px !important;
+            left: -64px !important;
+            width: 128px !important;
+            height: 128px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 50% !important;
         }
         
-        .justify-center {
-            justify-content: center !important;
+        .sidebar::after {
+            content: '' !important;
+            position: absolute !important;
+            bottom: -48px !important;
+            right: -48px !important;
+            width: 96px !important;
+            height: 96px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 50% !important;
         }
         
-        .text-center {
+        /* SEÇÃO DO PERFIL */
+        .profile-section {
             text-align: center !important;
+            margin-bottom: 24px !important;
+            position: relative !important;
+            z-index: 2 !important;
         }
         
-        /* AVATAR GEOMÉTRICO - CRÍTICO! */
+        /* AVATAR GEOMÉTRICO - EXATO DO FRONTEND */
         .profile-avatar {
             width: 96px !important;
             height: 96px !important;
@@ -290,7 +133,7 @@ export function generateSyncedHTML(data) {
             backdrop-filter: blur(4px) !important;
         }
         
-        /* PADRÃO GEOMÉTRICO INTERNO - EXATO DO FRONTEND */
+        /* PADRÃO GEOMÉTRICO INTERNO - EXATO */
         .avatar-pattern { 
             width: 64px !important; 
             height: 64px !important; 
@@ -346,21 +189,222 @@ export function generateSyncedHTML(data) {
             background: rgba(251, 191, 36, 0.8) !important; 
             border-radius: 50% !important; 
         }
+        
+        /* NOME */
+        .profile-name {
+            font-size: 20px !important;
+            font-weight: bold !important;
+            margin-bottom: 8px !important;
+            letter-spacing: 0.5px !important;
+            word-wrap: break-word !important;
+            color: white !important;
+        }
+        
+        /* SEÇÕES DA SIDEBAR */
+        .sidebar-section {
+            margin-bottom: 24px !important;
+            position: relative !important;
+            z-index: 2 !important;
+        }
+        
+        .sidebar-title {
+            font-size: 10px !important;
+            font-weight: bold !important;
+            margin-bottom: 12px !important;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.4) !important;
+            padding-bottom: 8px !important;
+            letter-spacing: 1.5px !important;
+            color: white !important;
+        }
+        
+        /* ITEMS DE CONTATO - EXATOS DO FRONTEND */
+        .contact-item {
+            display: flex !important;
+            align-items: flex-start !important;
+            margin-bottom: 12px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            padding: 8px !important;
+            border-radius: 8px !important;
+            backdrop-filter: blur(4px) !important;
+        }
+        
+        .contact-icon {
+            width: 16px !important;
+            height: 16px !important;
+            margin-right: 12px !important;
+            flex-shrink: 0 !important;
+            margin-top: 2px !important;
+        }
+        
+        .contact-text {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-size: 10px !important;
+            word-wrap: break-word !important;
+            flex: 1 !important;
+        }
+        
+        .contact-address {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-size: 10px !important;
+        }
+        
+        .address-main {
+            font-weight: 500 !important;
+        }
+        
+        .address-secondary {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        
+        /* DADOS PESSOAIS */
+        .personal-data {
+            background: rgba(255, 255, 255, 0.1) !important;
+            padding: 12px !important;
+            border-radius: 8px !important;
+            backdrop-filter: blur(4px) !important;
+        }
+        
+        .personal-item {
+            color: rgba(255, 255, 255, 0.9) !important;
+            margin-bottom: 8px !important;
+            font-size: 10px !important;
+        }
+        
+        .personal-label {
+            color: #67e8f9 !important;
+            font-weight: bold !important;
+        }
+        
+        /* DISPONIBILIDADE */
+        .availability-box {
+            background: rgba(255, 255, 255, 0.1) !important;
+            padding: 12px !important;
+            border-radius: 8px !important;
+            backdrop-filter: blur(4px) !important;
+        }
+        
+        .availability-text {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500 !important;
+            font-size: 10px !important;
+        }
+        
+        /* CONTEÚDO PRINCIPAL - 2/3 DA LARGURA */
+        .main-content {
+            width: 66.666667% !important;
+            padding: 24px !important;
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%) !important;
+        }
+        
+        .content-section {
+            margin-bottom: 24px !important;
+        }
+        
+        /* TÍTULOS DAS SEÇÕES */
+        .content-title {
+            font-size: 18px !important;
+            font-weight: bold !important;
+            color: #374151 !important;
+            margin-bottom: 12px !important;
+            padding-bottom: 8px !important;
+            position: relative !important;
+        }
+        
+        .title-text {
+            color: #0f766e !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        .content-title::after {
+            content: '' !important;
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 48px !important;
+            height: 4px !important;
+            background: linear-gradient(90deg, #0f766e 0%, #0891b2 100%) !important;
+            border-radius: 2px !important;
+        }
+        
+        /* CAIXAS DE CONTEÚDO */
+        .content-box {
+            background: white !important;
+            padding: 12px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            border-left: 4px solid #0f766e !important;
+        }
+        
+        .content-box.education {
+            border-left-color: #0f766e !important;
+        }
+        
+        .content-box.experience {
+            border-left-color: #0891b2 !important;
+        }
+        
+        .content-box.courses {
+            border-left-color: #3b82f6 !important;
+        }
+        
+        /* TEXTOS */
+        .content-text {
+            font-size: 11px !important;
+            color: #374151 !important;
+            line-height: 1.6 !important;
+            white-space: pre-line !important;
+            word-wrap: break-word !important;
+        }
+        
+        .education-title {
+            font-weight: bold !important;
+            color: #374151 !important;
+            font-size: 12px !important;
+            margin-bottom: 4px !important;
+        }
+        
+        .education-institution {
+            color: #6b7280 !important;
+            font-weight: 500 !important;
+            font-size: 11px !important;
+        }
+
+        /* CORES DOS ÍCONES - EXATAS DO FRONTEND */
+        .icon-email { 
+            stroke: #67e8f9 !important; 
+            fill: none !important;
+        }
+        .icon-phone { 
+            stroke: #fde047 !important; 
+            fill: none !important;
+        }
+        .icon-location { 
+            stroke: #67e8f9 !important; 
+            fill: none !important;
+        }
+        
+        /* ESPAÇAMENTOS - EXATOS */
+        .space-y-6 > * + * {
+            margin-top: 24px !important;
+        }
+        
+        .space-y-3 > * + * {
+            margin-top: 12px !important;
+        }
+        
+        .space-y-2 > * + * {
+            margin-top: 8px !important;
+        }
     </style>
 </head>
 <body>
     <!-- REPLICA EXATA DO CurriculumPreview.tsx -->
-    <div id="curriculo-preview" class="bg-white shadow-2xl mx-auto transform origin-top-left overflow-hidden">
-      <div class="flex h-full">
+    <div id="curriculo-preview">
+      <div class="curriculum-flex">
         <!-- Sidebar -->
-        <div class="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden">
-          <!-- Background Pattern -->
-          <div class="absolute inset-0 opacity-10">
-            <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
-            <div class="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12"></div>
-          </div>
-          
-          <div class="text-center mb-6">
+        <div class="sidebar">
+          <div class="profile-section">
             <!-- AVATAR GEOMÉTRICO - CRÍTICO! -->
             <div class="profile-avatar">
               <div class="avatar-pattern">
@@ -373,40 +417,40 @@ export function generateSyncedHTML(data) {
                 <div class="pattern-dot"></div>
               </div>
             </div>
-            <h1 class="text-xl font-bold mb-2 tracking-wide">${data.nome || 'Seu Nome'}</h1>
+            <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
           </div>
 
-          <div class="space-y-6 relative z-10">
-            <div>
-              <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">CONTATO</h3>
-              <div class="space-y-3 text-xs">
+          <div class="space-y-6">
+            <div class="sidebar-section">
+              <h3 class="sidebar-title">CONTATO</h3>
+              <div class="space-y-3">
                 ${data.email ? `
-                <div class="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                  <svg class="w-4 h-4 text-cyan-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="contact-item">
+                  <svg class="contact-icon icon-email" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                     <polyline points="22,6 12,13 2,6"></polyline>
                   </svg>
-                  <span class="text-white/90">${data.email}</span>
+                  <span class="contact-text">${data.email}</span>
                 </div>
                 ` : ''}
                 ${data.telefone ? `
-                <div class="flex items-center space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                  <svg class="w-4 h-4 text-yellow-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="contact-item">
+                  <svg class="contact-icon icon-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                   </svg>
-                  <span class="text-white/90">${data.telefone}</span>
+                  <span class="contact-text">${data.telefone}</span>
                 </div>
                 ` : ''}
                 ${data.endereco ? `
-                <div class="flex items-start space-x-3 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                  <svg class="w-4 h-4 mt-0.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="contact-item">
+                  <svg class="contact-icon icon-location" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                     <circle cx="12" cy="10" r="3"></circle>
                   </svg>
-                  <div class="text-white/90">
-                    <div class="font-medium">${data.endereco}</div>
+                  <div class="contact-address">
+                    <div class="address-main">${data.endereco}</div>
                     <div>${data.cidade}, ${data.estado}</div>
-                    <div class="text-white/70">${data.cep}</div>
+                    <div class="address-secondary">${data.cep}</div>
                   </div>
                 </div>
                 ` : ''}
@@ -414,21 +458,23 @@ export function generateSyncedHTML(data) {
             </div>
 
             ${(data.cpf || data.rg || data.nascimento) ? `
-            <div>
-              <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DADOS PESSOAIS</h3>
-              <div class="space-y-2 text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                ${data.cpf ? `<div class="text-white/90"><strong class="text-cyan-200">CPF:</strong> ${data.cpf}</div>` : ''}
-                ${data.rg ? `<div class="text-white/90"><strong class="text-cyan-200">RG:</strong> ${data.rg}</div>` : ''}
-                ${data.nascimento ? `<div class="text-white/90"><strong class="text-cyan-200">Nascimento:</strong> ${new Date(data.nascimento).toLocaleDateString('pt-BR')}</div>` : ''}
+            <div class="sidebar-section">
+              <h3 class="sidebar-title">DADOS PESSOAIS</h3>
+              <div class="personal-data">
+                <div class="space-y-2">
+                  ${data.cpf ? `<div class="personal-item"><span class="personal-label">CPF:</span> ${data.cpf}</div>` : ''}
+                  ${data.rg ? `<div class="personal-item"><span class="personal-label">RG:</span> ${data.rg}</div>` : ''}
+                  ${data.nascimento ? `<div class="personal-item"><span class="personal-label">Nascimento:</span> ${new Date(data.nascimento).toLocaleDateString('pt-BR')}</div>` : ''}
+                </div>
               </div>
             </div>
             ` : ''}
 
             ${data.disponibilidade ? `
-            <div>
-              <h3 class="text-xs font-bold mb-3 border-b-2 border-white/40 pb-2 tracking-widest">DISPONIBILIDADE</h3>
-              <div class="text-xs bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                <div class="text-white/90 font-medium">${data.disponibilidade}</div>
+            <div class="sidebar-section">
+              <h3 class="sidebar-title">DISPONIBILIDADE</h3>
+              <div class="availability-box">
+                <div class="availability-text">${data.disponibilidade}</div>
               </div>
             </div>
             ` : ''}
@@ -436,41 +482,38 @@ export function generateSyncedHTML(data) {
         </div>
 
         <!-- Conteúdo Principal -->
-        <div class="w-2/3 p-6 bg-gradient-to-br from-gray-50 to-white">
+        <div class="main-content">
           <div class="space-y-6">
             ${data.escolaridade ? `
-            <div>
-              <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                <span class="text-teal-800 font-extrabold tracking-wide">EDUCAÇÃO</span>
-                <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+            <div class="content-section">
+              <h3 class="content-title">
+                <span class="title-text">EDUCAÇÃO</span>
               </h3>
-              <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-teal-800">
-                <div class="font-bold text-gray-800 text-sm">${data.escolaridade}</div>
-                ${data.instituicao ? `<div class="text-gray-600 mt-1 font-medium">${data.instituicao}</div>` : ''}
+              <div class="content-box education">
+                <div class="education-title">${data.escolaridade}</div>
+                ${data.instituicao ? `<div class="education-institution">${data.instituicao}</div>` : ''}
               </div>
             </div>
             ` : ''}
 
             ${data.experiencia ? `
-            <div>
-              <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                <span class="text-teal-800 font-extrabold tracking-wide">EXPERIÊNCIA PROFISSIONAL</span>
-                <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+            <div class="content-section">
+              <h3 class="content-title">
+                <span class="title-text">EXPERIÊNCIA PROFISSIONAL</span>
               </h3>
-              <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-cyan-600">
-                <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed">${data.experiencia}</div>
+              <div class="content-box experience">
+                <div class="content-text">${data.experiencia}</div>
               </div>
             </div>
             ` : ''}
 
             ${data.cursos ? `
-            <div>
-              <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                <span class="text-teal-800 font-extrabold tracking-wide">CURSOS E CERTIFICAÇÕES</span>
-                <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+            <div class="content-section">
+              <h3 class="content-title">
+                <span class="title-text">CURSOS E CERTIFICAÇÕES</span>
               </h3>
-              <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
-                <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed">${data.cursos}</div>
+              <div class="content-box courses">
+                <div class="content-text">${data.cursos}</div>
               </div>
             </div>
             ` : ''}

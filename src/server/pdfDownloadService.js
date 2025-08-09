@@ -65,30 +65,41 @@ export class PDFDownloadService {
       console.log('⏳ Aguardando CSS Tailwind renderizar completamente...');
       
       // Aguardar elementos críticos
-      await page.waitForSelector('#curriculo-preview', { timeout: 10000 });
-      await page.waitForSelector('.profile-avatar', { timeout: 10000 });
+      await page.waitForSelector('#curriculo-preview', { timeout: 30000 });
+      await page.waitForSelector('.profile-avatar', { timeout: 30000 });
+      await page.waitForSelector('.contact-item', { timeout: 30000 });
+      await page.waitForSelector('.sidebar', { timeout: 30000 });
+      await page.waitForSelector('.main-content', { timeout: 30000 });
       
-      // Aguardar CSS ser aplicado completamente
+      // Aguardar CSS Tailwind ser aplicado completamente
       await page.waitForFunction(() => {
-        const sidebar = document.querySelector('.w-1\\/3');
-        const mainContent = document.querySelector('.w-2\\/3');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
         const avatar = document.querySelector('.profile-avatar');
+        const contactItems = document.querySelectorAll('.contact-item');
         
-        if (!sidebar || !mainContent || !avatar) return false;
+        if (!sidebar || !mainContent || !avatar || contactItems.length === 0) return false;
         
-        // Verificar se CSS foi aplicado
+        // Verificar se CSS foi aplicado corretamente
         const sidebarStyle = window.getComputedStyle(sidebar);
         const mainStyle = window.getComputedStyle(mainContent);
         const avatarStyle = window.getComputedStyle(avatar);
+        const contactStyle = window.getComputedStyle(contactItems[0]);
+        
+        // Verificar propriedades específicas
+        const sidebarHasGradient = sidebarStyle.background.includes('gradient') || sidebarStyle.backgroundImage.includes('gradient');
+        const contactHasBackground = contactStyle.backgroundColor !== 'rgba(0, 0, 0, 0)';
         
         return sidebarStyle.width !== 'auto' && 
                mainStyle.width !== 'auto' && 
-               avatarStyle.borderRadius === '50%';
-      }, { timeout: 15000 });
+               avatarStyle.borderRadius === '50%' &&
+               (sidebarHasGradient || sidebarStyle.backgroundColor !== 'rgba(0, 0, 0, 0)') &&
+               contactHasBackground;
+      }, { timeout: 30000 });
 
-      // TEMPO EXTRA PARA GARANTIR RENDERIZAÇÃO COMPLETA
-      console.log('⏳ Aguardando renderização final...');
-      await new Promise(resolve => setTimeout(resolve, 8000));
+      // TEMPO EXTRA PARA GARANTIR RENDERIZAÇÃO PERFEITA
+      console.log('⏳ Aguardando renderização perfeita (15 segundos)...');
+      await new Promise(resolve => setTimeout(resolve, 15000));
 
       console.log('⏳ Aguardando renderização completa...');
 
