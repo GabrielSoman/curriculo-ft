@@ -1,20 +1,20 @@
 // RENDERIZADOR DE PDF SEM JSDOM
 // Usa o próprio frontend para renderizar e retorna via API
 
-import { generateSyncedHTML } from './frontendSync.js';
+import { generateSyncedHTML } from './frontendExtractor.js';
 
 export async function renderPDFViaFrontend(data) {
-  console.log('🚀 RENDERIZADOR SINCRONIZADO: Usando frontend para gerar PDF...');
+  console.log('🚀 RENDERIZADOR COM CSS COMPILADO: Usando CSS exato do frontend...');
   
   try {
-    // Usar o sincronizador que replica EXATAMENTE o frontend
+    // Usar o extrator que usa CSS compilado do frontend
     const syncedHTML = generateSyncedHTML(data);
     
-    console.log('✅ HTML sincronizado gerado com avatar geométrico e font system-ui');
+    console.log('✅ HTML gerado com CSS compilado do build frontend');
     return syncedHTML;
     
   } catch (error) {
-    console.error('❌ RENDERIZADOR SINCRONIZADO: Erro:', error);
+    console.error('❌ RENDERIZADOR COM CSS COMPILADO: Erro:', error);
     throw error;
   }
 }

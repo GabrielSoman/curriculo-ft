@@ -60,9 +60,7 @@ export class PDFDownloadService {
       });
 
       // Aguardar renderização completa do CSS
-      // Aguardar elementos básicos renderizarem
-      // AGUARDAR RENDERIZAÇÃO COMPLETA DO CSS TAILWIND
-      console.log('⏳ Aguardando CSS Tailwind renderizar completamente...');
+      console.log('⏳ Aguardando CSS compilado renderizar completamente...');
       
       // Aguardar elementos críticos
       await page.waitForSelector('#curriculo-preview', { timeout: 30000 });
@@ -71,7 +69,7 @@ export class PDFDownloadService {
       await page.waitForSelector('.sidebar', { timeout: 30000 });
       await page.waitForSelector('.main-content', { timeout: 30000 });
       
-      // Aguardar CSS Tailwind ser aplicado completamente
+      // Aguardar CSS compilado ser aplicado completamente
       await page.waitForFunction(() => {
         const sidebar = document.querySelector('.sidebar');
         const mainContent = document.querySelector('.main-content');
@@ -97,11 +95,11 @@ export class PDFDownloadService {
                contactHasBackground;
       }, { timeout: 30000 });
 
-      // TEMPO EXTRA PARA GARANTIR RENDERIZAÇÃO PERFEITA
-      console.log('⏳ Aguardando renderização perfeita (15 segundos)...');
-      await new Promise(resolve => setTimeout(resolve, 15000));
+      // TEMPO EXTRA PARA CSS COMPILADO
+      console.log('⏳ Aguardando CSS compilado aplicar (10 segundos)...');
+      await new Promise(resolve => setTimeout(resolve, 10000));
 
-      console.log('⏳ Aguardando renderização completa...');
+      console.log('✅ CSS compilado aplicado, gerando PDF...');
 
       
       // Gerar PDF com configurações otimizadas
