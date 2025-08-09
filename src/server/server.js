@@ -79,6 +79,17 @@ function convertN8NData(n8nData) {
 
 // Função para gerar HTML do currículo
 function generateCurriculumHTML(data) {
+  // Escapar caracteres especiais HTML
+  const escapeHtml = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
   return `
 <!DOCTYPE html>
 <html>
@@ -101,8 +112,8 @@ function generateCurriculumHTML(data) {
             background: white;
             display: flex;
             color: #333;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
         }
         
         .sidebar {
@@ -307,11 +318,13 @@ function generateCurriculumHTML(data) {
         }
         
         pre {
-            white-space: pre-line;
+            white-space: pre-wrap;
+            word-wrap: break-word;
             font-family: inherit;
             font-size: 14px;
             line-height: 1.7;
             color: #444;
+            margin: 0;
         }
 
         .experience-text {
@@ -325,13 +338,18 @@ function generateCurriculumHTML(data) {
             line-height: 1.8;
             font-size: 14px;
         }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <div class="profile">
             <div class="profile-pic"></div>
-            <h1>${data.nome || 'Seu Nome'}</h1>
+            <h1>${escapeHtml(data.nome || 'Seu Nome')}</h1>
         </div>
 
         ${data.email || data.telefone || data.endereco ? `
@@ -340,28 +358,28 @@ function generateCurriculumHTML(data) {
             ${data.email ? `
             <div class="contact-item">
                 <span class="contact-icon">✉</span>
-                <span>${data.email}</span>
+                <span>${escapeHtml(data.email)}</span>
             </div>
             ` : ''}
             ${data.telefone ? `
             <div class="contact-item">
                 <span class="contact-icon">📞</span>
-                <span>${data.telefone}</span>
+                <span>${escapeHtml(data.telefone)}</span>
             </div>
             ` : ''}
             ${data.telefoneAlternativo ? `
             <div class="contact-item">
                 <span class="contact-icon">📱</span>
-                <span>${data.telefoneAlternativo}</span>
+                <span>${escapeHtml(data.telefoneAlternativo)}</span>
             </div>
             ` : ''}
             ${data.endereco ? `
             <div class="contact-item">
                 <span class="contact-icon">📍</span>
                 <div>
-                    <div style="font-weight: 600;">${data.endereco}</div>
-                    ${data.cidade && data.estado ? `<div>${data.cidade}, ${data.estado}</div>` : ''}
-                    ${data.cep ? `<div style="opacity: 0.8; font-size: 11px;">${data.cep}</div>` : ''}
+                    <div style="font-weight: 600;">${escapeHtml(data.endereco)}</div>
+                    ${data.cidade && data.estado ? `<div>${escapeHtml(data.cidade)}, ${escapeHtml(data.estado)}</div>` : ''}
+                    ${data.cep ? `<div style="opacity: 0.8; font-size: 11px;">${escapeHtml(data.cep)}</div>` : ''}
                 </div>
             </div>
             ` : ''}
@@ -372,8 +390,8 @@ function generateCurriculumHTML(data) {
         <div class="section">
             <h3>Dados Pessoais</h3>
             <div class="data-box">
-                ${data.cpf ? `<div class="data-item"><span class="data-label">CPF:</span> ${data.cpf}</div>` : ''}
-                ${data.rg ? `<div class="data-item"><span class="data-label">RG:</span> ${data.rg}</div>` : ''}
+                ${data.cpf ? `<div class="data-item"><span class="data-label">CPF:</span> ${escapeHtml(data.cpf)}</div>` : ''}
+                ${data.rg ? `<div class="data-item"><span class="data-label">RG:</span> ${escapeHtml(data.rg)}</div>` : ''}
                 ${data.nascimento ? `<div class="data-item"><span class="data-label">Nascimento:</span> ${new Date(data.nascimento).toLocaleDateString('pt-BR')}</div>` : ''}
             </div>
         </div>
@@ -382,7 +400,7 @@ function generateCurriculumHTML(data) {
         <div class="section">
             <h3>Disponibilidade</h3>
             <div class="availability-box">
-                <div class="availability-text">${data.disponibilidade || 'A combinar'}</div>
+                <div class="availability-text">${escapeHtml(data.disponibilidade || 'A combinar')}</div>
             </div>
         </div>
     </div>
@@ -392,8 +410,8 @@ function generateCurriculumHTML(data) {
         <div class="main-section">
             <h3>Educação</h3>
             <div class="content-box education">
-                <div class="education-title">${data.escolaridade}</div>
-                ${data.instituicao ? `<div class="education-institution">${data.instituicao}</div>` : ''}
+                <div class="education-title">${escapeHtml(data.escolaridade)}</div>
+                ${data.instituicao ? `<div class="education-institution">${escapeHtml(data.instituicao)}</div>` : ''}
             </div>
         </div>
         ` : ''}
@@ -403,7 +421,7 @@ function generateCurriculumHTML(data) {
             <h3>Experiência Profissional</h3>
             <div class="content-box experience">
                 <div class="experience-text">
-                    <pre>${data.experiencia}</pre>
+                    <pre>${escapeHtml(data.experiencia)}</pre>
                 </div>
             </div>
         </div>
@@ -414,7 +432,7 @@ function generateCurriculumHTML(data) {
             <h3>Cursos e Certificações</h3>
             <div class="content-box courses">
                 <div class="courses-text">
-                    <pre>${data.cursos}</pre>
+                    <pre>${escapeHtml(data.cursos)}</pre>
                 </div>
             </div>
         </div>
@@ -430,9 +448,7 @@ async function createBrowser() {
   const isProduction = process.env.NODE_ENV === 'production';
   
   const browserOptions = {
-    headless: 'new',
-    timeout: 60000,
-    protocolTimeout: 240000,
+    headless: true,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -441,29 +457,9 @@ async function createBrowser() {
       '--no-first-run',
       '--no-zygote',
       '--disable-gpu',
-      '--disable-gpu-sandbox',
-      '--disable-software-rasterizer',
-      '--disable-background-timer-throttling',
-      '--disable-renderer-backgrounding',
-      '--disable-backgrounding-occluded-windows',
-      '--disable-features=TranslateUI,VizDisplayCompositor',
-      '--disable-extensions',
-      '--disable-component-extensions-with-background-pages',
-      '--disable-default-apps',
-      '--mute-audio',
-      '--no-default-browser-check',
-      '--disable-background-networking',
-      '--disable-sync',
-      '--disable-translate',
-      '--hide-scrollbars',
       '--disable-web-security',
-      '--disable-features=site-per-process',
-      '--flag-switches-begin',
-      '--disable-ipc-flooding-protection',
-      '--flag-switches-end',
-      '--single-process',
-      '--memory-pressure-off',
-      '--max_old_space_size=4096'
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--single-process'
     ],
     ignoreDefaultArgs: ['--disable-extensions']
   };
@@ -474,8 +470,7 @@ async function createBrowser() {
 
   console.log('🔧 Configurações do browser:', {
     isProduction,
-    executablePath: browserOptions.executablePath || 'default',
-    argsCount: browserOptions.args.length
+    executablePath: browserOptions.executablePath || 'default'
   });
 
   try {
@@ -484,30 +479,14 @@ async function createBrowser() {
     return browser;
   } catch (error) {
     console.error('❌ Erro ao criar browser:', error.message);
-    
-    // Tentar configuração de fallback
-    console.log('🔄 Tentando configuração de fallback...');
-    const fallbackOptions = {
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--single-process'
-      ]
-    };
-    
-    if (isProduction) {
-      fallbackOptions.executablePath = '/usr/bin/chromium-browser';
-    }
-    
-    return await puppeteer.launch(fallbackOptions);
+    throw error;
   }
 }
 
 // Endpoint principal para gerar PDF
 app.post('/api/generate-pdf', async (req, res) => {
   let browser = null;
+  let page = null;
   
   try {
     console.log('📥 Dados recebidos para PDF:', JSON.stringify(req.body, null, 2));
@@ -526,154 +505,112 @@ app.post('/api/generate-pdf', async (req, res) => {
 
     console.log('🚀 Iniciando geração do PDF...');
     
-    // Criar navegador com retry
-    let pdfBuffer = null;
-    let page = null;
-    let attempts = 0;
-    const maxAttempts = 3;
+    // Criar browser
+    browser = await createBrowser();
+    page = await browser.newPage();
+    console.log('✅ Página criada');
     
-    while (attempts < maxAttempts && !browser) {
-      attempts++;
-      try {
-        console.log(`🔄 Tentativa ${attempts}/${maxAttempts} de criar browser...`);
-        browser = await createBrowser();
-        break;
-      } catch (error) {
-        console.error(`❌ Tentativa ${attempts} falhou:`, error.message);
-        if (attempts === maxAttempts) {
-          throw new Error(`Falha ao criar browser após ${maxAttempts} tentativas: ${error.message}`);
-        }
-        // Aguardar antes de tentar novamente
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
+    // Configurar viewport para A4
+    await page.setViewport({ 
+      width: 794,  // ~210mm em 96dpi
+      height: 1123, // ~297mm em 96dpi
+      deviceScaleFactor: 2 
+    });
+    
+    // Configurar timeouts
+    page.setDefaultTimeout(60000);
+    page.setDefaultNavigationTimeout(60000);
+    
+    // Gerar HTML
+    const html = generateCurriculumHTML(data);
+    console.log('✅ HTML gerado (tamanho:', html.length, 'caracteres)');
+    
+    // Definir conteúdo
+    await page.setContent(html, { 
+      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+      timeout: 60000 
+    });
+    console.log('✅ Conteúdo definido na página');
+    
+    // Aguardar renderização completa
+    await page.evaluateHandle('document.fonts.ready');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('✅ Aguardou renderização');
+    
+    // Gerar PDF com configurações corretas
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      preferCSSPageSize: false,
+      margin: {
+        top: '0mm',
+        right: '0mm',
+        bottom: '0mm',
+        left: '0mm'
+      },
+      displayHeaderFooter: false,
+      scale: 1,
+      timeout: 60000
+    });
+    
+    console.log('✅ PDF gerado, tamanho:', pdfBuffer.length, 'bytes');
+    
+    // Verificar se é um PDF válido
+    const pdfHeader = pdfBuffer.toString('ascii', 0, 5);
+    if (!pdfHeader.startsWith('%PDF')) {
+      throw new Error('Buffer gerado não é um PDF válido');
     }
+    console.log('✅ PDF validado (header:', pdfHeader, ')');
     
-    try {
-      page = await browser.newPage();
-      console.log('✅ Página criada');
-      
-      // Configurar viewport
-      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
-      
-      // Configurar timeouts
-      page.setDefaultTimeout(30000);
-      page.setDefaultNavigationTimeout(30000);
-      
-      // Gerar HTML
-      const html = generateCurriculumHTML(data);
-      console.log('✅ HTML gerado');
-      
-      // Definir conteúdo com timeout
-      await page.setContent(html, { 
-        waitUntil: ['networkidle0', 'domcontentloaded'],
-        timeout: 30000 
-      });
-      console.log('✅ Conteúdo definido na página');
-      
-      // Aguardar renderização
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      console.log('✅ Aguardou renderização');
-      
-      // Gerar PDF
-      pdfBuffer = await page.pdf({
-        format: 'A4',
-        margin: { top: 0, right: 0, bottom: 0, left: 0 },
-        printBackground: true,
-        preferCSSPageSize: true,
-        timeout: 30000
-      });
-      
-      console.log('✅ PDF gerado, tamanho:', pdfBuffer.length, 'bytes');
-      
-      // Fechar página primeiro
-      await page.close();
-      page = null;
-      
-    } catch (pageError) {
-      console.error('❌ Erro na página:', pageError.message);
-      if (page) {
-        try {
-          await page.close();
-        } catch (closeError) {
-          console.error('❌ Erro ao fechar página:', closeError.message);
-        }
-      }
-      throw pageError;
-    }
+    // Fechar página e browser
+    if (page) await page.close();
+    if (browser) await browser.close();
     
-    // Fechar browser
-    await browser.close();
-    browser = null;
-    
-    // Verificar se PDF foi gerado
-    if (!pdfBuffer) {
-      throw new Error('PDF não foi gerado');
-    }
-    
-    // Converter para base64 SEMPRE como string
+    // Converter para base64
     const pdfBase64 = pdfBuffer.toString('base64');
     
-    // Verificar se a conversão foi bem-sucedida
-    if (!pdfBase64 || typeof pdfBase64 !== 'string') {
+    // Verificar conversão base64
+    if (!pdfBase64 || pdfBase64.length === 0) {
       throw new Error('Erro ao converter PDF para base64');
     }
     
-    // Teste de validação do base64
-    try {
-      const testBuffer = Buffer.from(pdfBase64, 'base64');
-      const testHeader = testBuffer.toString('ascii', 0, 4);
-      console.log('🧪 Validação base64:', {
-        originalSize: pdfBuffer.length,
-        base64Size: pdfBase64.length,
-        base64Type: typeof pdfBase64,
-        reconvertedSize: testBuffer.length,
-        validPDF: testHeader === '%PDF',
-        sizesMatch: pdfBuffer.length === testBuffer.length
-      });
-      
-      if (testHeader !== '%PDF') {
-        console.warn('⚠️  Aviso: Header PDF não detectado após conversão base64');
-      }
-      
-    } catch (testError) {
-      console.error('❌ Erro na validação base64:', testError.message);
-      throw new Error('Base64 gerado é inválido');
-    }
+    console.log('✅ PDF convertido para base64:', {
+      originalSize: pdfBuffer.length,
+      base64Length: pdfBase64.length,
+      ratio: (pdfBase64.length / pdfBuffer.length).toFixed(2)
+    });
     
-    // Resposta para N8N - GARANTINDO que pdf é string base64
+    // Resposta para N8N
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
     
-    const responseData = {
+    res.json({
       success: true,
-      pdf: pdfBase64,  // <-- SEMPRE string base64, nunca buffer
+      pdf: pdfBase64,
       filename: fileName,
       size: pdfBuffer.length,
       message: 'PDF gerado com sucesso'
-    };
-    
-    // Log final para debug
-    console.log('📊 Resposta preparada:', {
-      success: responseData.success,
-      pdfType: typeof responseData.pdf,
-      pdfIsString: typeof responseData.pdf === 'string',
-      pdfLength: responseData.pdf ? responseData.pdf.length : 0,
-      filename: responseData.filename,
-      size: responseData.size,
-      startsWithBase64: responseData.pdf ? responseData.pdf.substring(0, 10) : 'N/A'
     });
     
-    res.json(responseData);
-    
-    console.log('✅ Resposta enviada para N8N com PDF em base64 string');
+    console.log('✅ Resposta enviada com sucesso');
 
   } catch (error) {
     console.error('❌ Erro ao gerar PDF:', error);
+    console.error('Stack:', error.stack);
+    
+    // Limpar recursos
+    if (page) {
+      try {
+        await page.close();
+      } catch (e) {
+        console.error('Erro ao fechar página:', e);
+      }
+    }
     
     if (browser) {
       try {
         await browser.close();
-      } catch (closeError) {
-        console.error('❌ Erro ao fechar browser:', closeError);
+      } catch (e) {
+        console.error('Erro ao fechar browser:', e);
       }
     }
     
@@ -685,45 +622,94 @@ app.post('/api/generate-pdf', async (req, res) => {
   }
 });
 
-// Endpoint de health check mais robusto
-app.get('/api/health', async (req, res) => {
+// Endpoint para download direto do PDF
+app.post('/api/download-pdf', async (req, res) => {
+  let browser = null;
+  let page = null;
+  
   try {
-    // Testar se o Puppeteer consegue criar um browser
-    const healthBrowser = await createBrowser();
-    await healthBrowser.close();
+    console.log('📥 Dados recebidos para download PDF');
     
-    res.json({ 
-      status: 'ok', 
-      timestamp: new Date().toISOString(),
-      version: '2.0.0',
-      engine: 'puppeteer + chromium',
-      puppeteer: 'working'
+    const data = convertN8NData(req.body);
+    
+    if (!data.nome) {
+      return res.status(400).json({ 
+        error: 'Campo "nome" é obrigatório'
+      });
+    }
+
+    browser = await createBrowser();
+    page = await browser.newPage();
+    
+    await page.setViewport({ 
+      width: 794,
+      height: 1123,
+      deviceScaleFactor: 2 
     });
+    
+    const html = generateCurriculumHTML(data);
+    
+    await page.setContent(html, { 
+      waitUntil: ['networkidle0', 'load', 'domcontentloaded']
+    });
+    
+    await page.evaluateHandle('document.fonts.ready');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 }
+    });
+    
+    if (page) await page.close();
+    if (browser) await browser.close();
+    
+    const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
+    
+    // Headers para download direto
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    // Enviar o buffer diretamente
+    res.end(pdfBuffer);
+    
+    console.log('✅ PDF enviado como download');
+
   } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      timestamp: new Date().toISOString(),
-      version: '2.0.0',
-      engine: 'puppeteer + chromium',
-      puppeteer: 'failed',
-      error: error.message
+    console.error('❌ Erro:', error);
+    
+    if (page) await page.close().catch(() => {});
+    if (browser) await browser.close().catch(() => {});
+    
+    res.status(500).json({ 
+      error: 'Erro ao gerar PDF', 
+      details: error.message
     });
   }
 });
 
-// Endpoint para teste de conversão
+// Health check
+app.get('/api/health', async (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: '2.0.0',
+    engine: 'puppeteer'
+  });
+});
+
+// Teste de conversão
 app.post('/api/test-conversion', (req, res) => {
   try {
-    console.log('🧪 Dados recebidos para teste:', JSON.stringify(req.body, null, 2));
     const convertedData = convertN8NData(req.body);
-    console.log('🔄 Dados convertidos:', JSON.stringify(convertedData, null, 2));
     res.json({
       success: true,
       original: req.body,
       converted: convertedData
     });
   } catch (error) {
-    console.error('❌ Erro na conversão:', error);
     res.status(400).json({ 
       success: false,
       error: error.message 
@@ -731,17 +717,14 @@ app.post('/api/test-conversion', (req, res) => {
   }
 });
 
-// Endpoint de status
+// Status
 app.get('/api/status', (req, res) => {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const distPath = path.join(__dirname, '../../dist');
-  const buildExists = fs.existsSync(distPath);
   
   res.json({
-    buildExists,
-    distPath,
-    files: buildExists ? fs.readdirSync(distPath) : [],
-    engine: 'puppeteer + chromium unified',
+    buildExists: fs.existsSync(distPath),
+    engine: 'puppeteer',
     node_env: process.env.NODE_ENV,
     port: PORT
   });
@@ -758,8 +741,7 @@ app.get('*', (req, res) => {
     res.sendFile(indexPath);
   } else {
     res.status(404).json({ 
-      error: 'Build não encontrado. Execute npm run build primeiro.',
-      path: indexPath
+      error: 'Build não encontrado. Execute npm run build primeiro.'
     });
   }
 });
@@ -773,225 +755,14 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
+// Iniciar servidor
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📄 Interface: http://localhost:${PORT}`);
   console.log(`🔗 API: POST http://localhost:${PORT}/api/generate-pdf`);
+  console.log(`📥 Download: POST http://localhost:${PORT}/api/download-pdf`);
   console.log(`🧪 Teste: POST http://localhost:${PORT}/api/test-conversion`);
   console.log(`⚡ Health: GET http://localhost:${PORT}/api/health`);
   console.log(`🎯 Motor: Puppeteer + Chromium`);
   console.log(`🐳 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-
-
-  // 🎯 NOVO ENDPOINT: Retorna PDF diretamente como download
-// Adicione este endpoint ao seu servidor (mantendo o atual também)
-
-// Endpoint para download direto do PDF
-app.post('/api/download-pdf', async (req, res) => {
-  let browser = null;
-  
-  try {
-    console.log('📥 Dados recebidos para download PDF:', JSON.stringify(req.body, null, 2));
-    
-    // Converter dados do N8N para formato interno
-    const data = convertN8NData(req.body);
-    console.log('🔄 Dados convertidos:', JSON.stringify(data, null, 2));
-    
-    // Validação básica
-    if (!data.nome) {
-      return res.status(400).json({ 
-        error: 'Campo "nome" é obrigatório',
-        received: data 
-      });
-    }
-
-    console.log('🚀 Iniciando geração do PDF para download...');
-    
-    // Criar navegador com retry
-    let pdfBuffer = null;
-    let page = null;
-    let attempts = 0;
-    const maxAttempts = 3;
-    
-    while (attempts < maxAttempts && !browser) {
-      attempts++;
-      try {
-        console.log(`🔄 Tentativa ${attempts}/${maxAttempts} de criar browser...`);
-        browser = await createBrowser();
-        break;
-      } catch (error) {
-        console.error(`❌ Tentativa ${attempts} falhou:`, error.message);
-        if (attempts === maxAttempts) {
-          throw new Error(`Falha ao criar browser após ${maxAttempts} tentativas: ${error.message}`);
-        }
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-    }
-    
-    try {
-      page = await browser.newPage();
-      console.log('✅ Página criada');
-      
-      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
-      page.setDefaultTimeout(30000);
-      page.setDefaultNavigationTimeout(30000);
-      
-      const html = generateCurriculumHTML(data);
-      console.log('✅ HTML gerado');
-      
-      await page.setContent(html, { 
-        waitUntil: ['networkidle0', 'domcontentloaded'],
-        timeout: 30000 
-      });
-      console.log('✅ Conteúdo definido na página');
-      
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      console.log('✅ Aguardou renderização');
-      
-      pdfBuffer = await page.pdf({
-        format: 'A4',
-        margin: { top: 0, right: 0, bottom: 0, left: 0 },
-        printBackground: true,
-        preferCSSPageSize: true,
-        timeout: 30000
-      });
-      
-      console.log('✅ PDF gerado, tamanho:', pdfBuffer.length, 'bytes');
-      
-      await page.close();
-      page = null;
-      
-    } catch (pageError) {
-      console.error('❌ Erro na página:', pageError.message);
-      if (page) {
-        try {
-          await page.close();
-        } catch (closeError) {
-          console.error('❌ Erro ao fechar página:', closeError.message);
-        }
-      }
-      throw pageError;
-    }
-    
-    await browser.close();
-    browser = null;
-    
-    if (!pdfBuffer) {
-      throw new Error('PDF não foi gerado');
-    }
-    
-    // Gerar nome do arquivo
-    const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
-    
-    // Definir headers para download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    res.setHeader('Cache-Control', 'no-cache');
-    
-    console.log('📤 Enviando PDF como download:', {
-      filename: fileName,
-      size: pdfBuffer.length,
-      contentType: 'application/pdf'
-    });
-    
-    // Enviar o PDF diretamente
-    res.send(pdfBuffer);
-    
-    console.log('✅ PDF enviado como download com sucesso!');
-
-  } catch (error) {
-    console.error('❌ Erro ao gerar PDF para download:', error);
-    
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error('❌ Erro ao fechar browser:', closeError);
-      }
-    }
-    
-    // Se der erro, retornar JSON com erro
-    res.status(500).json({ 
-      error: 'Erro ao gerar PDF', 
-      details: error.message
-    });
-  }
-});
-
-// 🎯 VERSÃO HÍBRIDA: Suporta tanto JSON quanto download
-app.post('/api/generate-pdf-hybrid', async (req, res) => {
-  let browser = null;
-  
-  try {
-    console.log('📥 Dados recebidos (modo híbrido):', JSON.stringify(req.body, null, 2));
-    
-    // Verificar se o cliente quer download direto
-    const wantsDownload = req.headers.accept === 'application/pdf' || 
-                         req.query.download === 'true' ||
-                         req.body.download === true;
-    
-    console.log('📋 Modo solicitado:', wantsDownload ? 'DOWNLOAD' : 'JSON');
-    
-    const data = convertN8NData(req.body);
-    
-    if (!data.nome) {
-      return res.status(400).json({ 
-        error: 'Campo "nome" é obrigatório'
-      });
-    }
-
-    console.log('🚀 Iniciando geração do PDF...');
-    
-    // [... código de geração do PDF igual ao anterior ...]
-    // (simplificando aqui, mas seria o mesmo código)
-    
-    // Gerar PDF (mesmo processo)
-    let pdfBuffer = null;
-    // ... (código de geração) ...
-    
-    if (!pdfBuffer) {
-      throw new Error('PDF não foi gerado');
-    }
-    
-    const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
-    
-    if (wantsDownload) {
-      // Retornar como download
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-      res.setHeader('Content-Length', pdfBuffer.length);
-      res.send(pdfBuffer);
-      console.log('✅ PDF enviado como download');
-      
-    } else {
-      // Retornar como JSON (modo atual)
-      const pdfBase64 = pdfBuffer.toString('base64');
-      res.json({
-        success: true,
-        pdf: pdfBase64,
-        filename: fileName,
-        size: pdfBuffer.length,
-        message: 'PDF gerado com sucesso'
-      });
-      console.log('✅ PDF enviado como JSON');
-    }
-
-  } catch (error) {
-    console.error('❌ Erro:', error);
-    
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error('❌ Erro ao fechar browser:', closeError);
-      }
-    }
-    
-    res.status(500).json({ 
-      error: 'Erro ao gerar PDF', 
-      details: error.message
-    });
-  }
-});
 });
