@@ -21,7 +21,7 @@ RUN echo "=== Build completed ===" && ls -la dist/
 # Production stage
 FROM node:18-alpine AS production
 
-# Install Chromium and dependencies for PDF generation
+# Install basic dependencies
 RUN apk add --no-cache \
     ca-certificates \
     fontconfig \
@@ -38,8 +38,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nextjs:nodejs /app/src/server ./src/server
 COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production --no-audit --no-fund && \
+# Install production dependencies using npm install (not ci)
+RUN npm install --omit=dev --no-audit --no-fund && \
     npm cache clean --force
 
 # Create necessary directories and set permissions
