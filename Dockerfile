@@ -36,14 +36,13 @@ RUN apk add --no-cache \
     font-noto-cjk \
     font-noto-extra \
     wqy-zenhei \
-    && fc-cache -f
+    dbus \
+    && fc-cache -f \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -S nextjs -u 1001
 
 # Create app directory
 WORKDIR /app
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
 
 # Copy built application and server files
 COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
@@ -55,10 +54,11 @@ RUN npm ci --only=production --no-audit --no-fund && \
     npm cache clean --force
 
 # Create necessary directories and set permissions
-RUN mkdir -p /tmp && \
+RUN mkdir -p /tmp /app/.cache /var/run/dbus && \
     chmod 777 /tmp && \
-    mkdir -p /app/.cache && \
-    chown -R nextjs:nodejs /app/.cache
+    chmod 755 /var/run/dbus && \
+    chown -R nextjs:nodejs /app/.cache && \
+    dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
 
 # Switch to non-root user
 USER nextjs
