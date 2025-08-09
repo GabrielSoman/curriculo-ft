@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import htmlPdf from 'html-pdf-node';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -359,12 +360,184 @@ app.post('/api/generate-pdf', async (req, res) => {
       return res.status(400).json({ error: 'Campo "nome" é obrigatório' });
     }
 
-    // Retornar instruções para o frontend usar o motor unificado
-    res.json({
-      message: 'Use o motor unificado do frontend',
-      data: data,
-      instruction: 'FRONTEND_RENDER'
-    });
+    // Gerar HTML do currículo
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: system-ui, -apple-system, sans-serif;
+            width: 210mm; 
+            height: 297mm; 
+            font-size: 11px; 
+            line-height: 1.5; 
+            background: white;
+            display: flex;
+          }
+          .sidebar {
+            width: 33.33%; 
+            background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%); 
+            color: white; 
+            padding: 24px; 
+            position: relative; 
+            overflow: hidden;
+          }
+          .profile {
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 10;
+          }
+          .profile h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+          }
+          .section {
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 10;
+          }
+          .section h3 {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+            padding-bottom: 8px;
+            letter-spacing: 0.1em;
+          }
+          .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 8px;
+          }
+          .main-content {
+            width: 66.67%;
+            padding: 24px;
+            background: linear-gradient(135deg, #f9fafb 0%, white 100%);
+          }
+          .main-section {
+            margin-bottom: 24px;
+          }
+          .main-section h3 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f766e;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #0f766e;
+          }
+          .content-box {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #0f766e;
+          }
+          pre {
+            white-space: pre-line;
+            font-family: inherit;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="sidebar">
+          <div class="profile">
+            <h1>${data.nome || 'Seu Nome'}</h1>
+          </div>
+
+          ${data.email || data.telefone || data.endereco ? `
+          <div class="section">
+            <h3>CONTATO</h3>
+            ${data.email ? `<div class="contact-item">✉ ${data.email}</div>` : ''}
+            ${data.telefone ? `<div class="contact-item">📞 ${data.telefone}</div>` : ''}
+            ${data.endereco ? `<div class="contact-item">📍 ${data.endereco}, ${data.cidade}, ${data.estado}</div>` : ''}
+          </div>
+          ` : ''}
+
+          ${data.disponibilidade ? `
+          <div class="section">
+            <h3>DISPONIBILIDADE</h3>
+            <div style="background: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
+              ${data.disponibilidade}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+
+        <div class="main-content">
+          ${data.escolaridade ? `
+          <div class="main-section">
+            <h3>EDUCAÇÃO</h3>
+            <div class="content-box">
+              <div style="font-weight: bold;">${data.escolaridade}</div>
+              ${data.instituicao ? `<div style="color: #666; margin-top: 4px;">${data.instituicao}</div>` : ''}
+            </div>
+          </div>
+          ` : ''}
+
+          ${data.experiencia ? `
+          <div class="main-section">
+            <h3>EXPERIÊNCIA PROFISSIONAL</h3>
+            <div class="content-box">
+              <pre>${data.experiencia}</pre>
+            </div>
+          </div>
+          ` : ''}
+
+          ${data.cursos ? `
+          <div class="main-section">
+            <h3>CURSOS E CERTIFICAÇÕES</h3>
+            <div class="content-box">
+              <pre>${data.cursos}</pre>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Configurações do PDF
+    const options = { 
+      format: 'A4',
+      margin: { top: '0', right: '0', bottom: '0', left: '0' },
+      printBackground: true
+    };
+
+    try {
+      // Gerar PDF real
+      const file = { content: html };
+      const pdfBuffer = await htmlPdf.generatePdf(file, options);
+      const pdfBase64 = pdfBuffer.toString('base64');
+      
+      const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
+      
+      console.log('✅ PDF gerado com sucesso:', fileName);
+      console.log('📄 Tamanho do PDF:', pdfBuffer.length, 'bytes');
+      
+      res.json({
+        status: 'success',
+        filename: fileName,
+        pdf: pdfBase64,
+        message: 'PDF gerado com sucesso',
+        size: pdfBuffer.length
+      });
+      
+    } catch (pdfError) {
+      console.error('❌ Erro ao gerar PDF:', pdfError);
+      res.status(500).json({ 
+        error: 'Erro ao gerar PDF', 
+        details: pdfError.message 
+      });
+    }
 
   } catch (error) {
     console.error('Erro ao processar dados para PDF:', error);
