@@ -5,22 +5,16 @@ WORKDIR /app
 
 # Install dependencies for Playwright
 RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+    wkhtmltopdf \
+    xvfb \
+    ttf-freefont \
+    fontconfig
 
 # Copy package files first for better caching
 COPY package*.json ./
 
 # Install all dependencies (including dev dependencies for build)
 RUN npm install
-
-# Install Playwright browsers
-RUN npx playwright install chromium
 
 # Copy all source files
 COPY . .
@@ -36,13 +30,10 @@ FROM node:18-alpine AS production
 
 # Install dependencies for Playwright
 RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+    wkhtmltopdf \
+    xvfb \
+    ttf-freefont \
+    fontconfig
 
 # Create app directory
 WORKDIR /app
@@ -60,15 +51,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
 RUN npm ci --only=production --no-audit --no-fund && \
     npm cache clean --force
 
-# Install Playwright browsers in production stage
-RUN npx playwright install chromium
-
 # Switch to non-root user
 USER nextjs
-
-# Set environment variables for Playwright
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Set port environment variable
 ENV PORT=80
