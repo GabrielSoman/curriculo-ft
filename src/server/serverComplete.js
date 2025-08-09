@@ -245,7 +245,6 @@ process.on('SIGINT', async () => {
 });
 
 // Servir arquivos estáticos
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(express.static(path.join(__dirname, '../../dist')));
 
 // Fallback para SPA
