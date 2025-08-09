@@ -23,21 +23,10 @@ FROM node:18-alpine AS production
 
 # Install Chromium and dependencies for PDF generation
 RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
     ca-certificates \
+    fontconfig \
     ttf-freefont \
     ttf-dejavu \
-    fontconfig \
-    font-noto \
-    font-noto-cjk \
-    font-noto-extra \
-    wqy-zenhei \
-    dbus \
-    && fc-cache -f \
     && addgroup -g 1001 -S nodejs \
     && adduser -S nextjs -u 1001
 
@@ -54,19 +43,15 @@ RUN npm ci --only=production --no-audit --no-fund && \
     npm cache clean --force
 
 # Create necessary directories and set permissions
-RUN mkdir -p /tmp /app/.cache /var/run/dbus /dev/shm && \
+RUN mkdir -p /tmp /app/.cache && \
     chmod 777 /tmp && \
-    chmod 777 /dev/shm && \
-    chmod 755 /var/run/dbus && \
     chown -R nextjs:nodejs /app/.cache
 
 # Switch to non-root user
 USER nextjs
 
-# Set Puppeteer environment variables
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    DISPLAY=:99
+# Set Node.js environment variables
+ENV NODE_ENV=production
 
 # Set port environment variable
 ENV PORT=80
