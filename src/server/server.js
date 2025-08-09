@@ -610,21 +610,61 @@ app.post('/api/generate-pdf', async (req, res) => {
       throw new Error('PDF não foi gerado');
     }
     
-    // Converter para base64
+    // Converter para base64 SEMPRE como string
     const pdfBase64 = pdfBuffer.toString('base64');
     
-    // Resposta para N8N
+    // Verificar se a conversão foi bem-sucedida
+    if (!pdfBase64 || typeof pdfBase64 !== 'string') {
+      throw new Error('Erro ao converter PDF para base64');
+    }
+    
+    // Teste de validação do base64
+    try {
+      const testBuffer = Buffer.from(pdfBase64, 'base64');
+      const testHeader = testBuffer.toString('ascii', 0, 4);
+      console.log('🧪 Validação base64:', {
+        originalSize: pdfBuffer.length,
+        base64Size: pdfBase64.length,
+        base64Type: typeof pdfBase64,
+        reconvertedSize: testBuffer.length,
+        validPDF: testHeader === '%PDF',
+        sizesMatch: pdfBuffer.length === testBuffer.length
+      });
+      
+      if (testHeader !== '%PDF') {
+        console.warn('⚠️  Aviso: Header PDF não detectado após conversão base64');
+      }
+      
+    } catch (testError) {
+      console.error('❌ Erro na validação base64:', testError.message);
+      throw new Error('Base64 gerado é inválido');
+    }
+    
+    // Resposta para N8N - GARANTINDO que pdf é string base64
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
     
-    res.json({
+    const responseData = {
       success: true,
-      pdf: pdfBase64,
+      pdf: pdfBase64,  // <-- SEMPRE string base64, nunca buffer
       filename: fileName,
       size: pdfBuffer.length,
       message: 'PDF gerado com sucesso'
+    };
+    
+    // Log final para debug
+    console.log('📊 Resposta preparada:', {
+      success: responseData.success,
+      pdfType: typeof responseData.pdf,
+      pdfIsString: typeof responseData.pdf === 'string',
+      pdfLength: responseData.pdf ? responseData.pdf.length : 0,
+      filename: responseData.filename,
+      size: responseData.size,
+      startsWithBase64: responseData.pdf ? responseData.pdf.substring(0, 10) : 'N/A'
     });
     
-    console.log('✅ Resposta enviada para N8N');
+    res.json(responseData);
+    
+    console.log('✅ Resposta enviada para N8N com PDF em base64 string');
 
   } catch (error) {
     console.error('❌ Erro ao gerar PDF:', error);
