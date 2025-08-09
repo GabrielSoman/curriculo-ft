@@ -54,33 +54,42 @@ export class PDFDownloadService {
       console.log('🌐 Carregando frontend real...');
       await page.setContent(htmlContent, {
         waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 0
+        timeout: 30000
       });
 
       console.log('⏳ Aguardando React carregar e gerar PDF...');
       
       // Aguardar React e sistema de PDF carregarem
       try {
-        await page.waitForSelector('#root', { timeout: 0 });
+        await page.waitForSelector('#root', { timeout: 15000 });
         console.log('✅ React carregado');
         
-        // Aguardar o sistema gerar o PDF automaticamente
+        // Aguardar o sistema gerar o PDF automaticamente (com timeout)
         await page.waitForFunction(() => {
           return document.title === 'PDF_READY' || document.title === 'PDF_ERROR';
-        }, { timeout: 0 });
+        }, { timeout: 60000 });
         
         const title = await page.title();
         if (title === 'PDF_ERROR') {
-          throw new Error('Frontend falhou ao gerar PDF');
+          const errorLogs = await page.evaluate(() => {
+            return Array.from(document.querySelectorAll('*')).map(el => el.textContent).join(' ');
+          });
+          throw new Error(`Frontend falhou ao gerar PDF. Logs: ${errorLogs.substring(0, 500)}`);
         }
         
         console.log('✅ Frontend gerou PDF com sucesso!');
       } catch (error) {
-        console.log('⚠️ Erro no frontend, tentando captura direta...');
+        console.log('⚠️ Erro no frontend, tentando captura direta...', error.message);
+        
+        // Log do console da página
+        const consoleLogs = await page.evaluate(() => {
+          return window.console ? 'Console disponível' : 'Console não disponível';
+        });
+        console.log('🔍 Console da página:', consoleLogs);
       }
       
       console.log('📸 Capturando página renderizada pelo frontend...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
       
       // Gerar PDF com configurações otimizadas
