@@ -67,6 +67,42 @@ export function generatePerfectSyncHTML(data) {
             transform: scale(1);
             transform-origin: top left;
         }
+        
+        /* GARANTIR QUE GRADIENTES FUNCIONEM NO PUPPETEER */
+        .bg-gradient-to-br {
+            background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)) !important;
+        }
+        
+        /* GARANTIR OPACIDADES */
+        .bg-white\/10 {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .text-white\/90 {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        .text-white\/70 {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        
+        /* GARANTIR CORES DOS ÍCONES */
+        .text-cyan-200 {
+            color: rgb(165 243 252) !important;
+        }
+        
+        .text-yellow-300 {
+            color: rgb(253 224 71) !important;
+        }
+        
+        .text-cyan-300 {
+            color: rgb(103 232 249) !important;
+        }
+        
+        /* GARANTIR BACKDROP BLUR */
+        .backdrop-blur-sm {
+            backdrop-filter: blur(4px) !important;
+        }
     </style>
 </head>
 <body>

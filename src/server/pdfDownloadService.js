@@ -118,11 +118,46 @@ export class PDFDownloadService {
         console.log('⚠️ CSS Tailwind pode não estar 100% aplicado, continuando...');
       }
 
-      // TEMPO EXTRA PARA RENDERIZAÇÃO COMPLETA - AUMENTADO
-      console.log('⏳ Aguardando renderização final (15 segundos)...');
-      await new Promise(resolve => setTimeout(resolve, 15000));
+      // VERIFICAÇÃO FINAL DE ESTÉTICA
+      console.log('🎨 Verificando estética final...');
+      try {
+        await page.waitForFunction(() => {
+          // Verificar cores dos ícones
+          const emailIcon = document.querySelector('.text-cyan-200');
+          const phoneIcon = document.querySelector('.text-yellow-300');
+          const locationIcon = document.querySelector('.text-cyan-300');
+          
+          // Verificar backgrounds translúcidos
+          const contactItems = document.querySelectorAll('.bg-white\\/10');
+          
+          // Verificar avatar geométrico
+          const avatarPatterns = document.querySelectorAll('.bg-yellow-400\\/40, .bg-yellow-400\\/30, .bg-yellow-400\\/50');
+          
+          // Verificar gradientes
+          const sidebar = document.querySelector('.bg-gradient-to-br');
+          const sidebarStyle = window.getComputedStyle(sidebar);
+          
+          console.log('🔍 Verificações:', {
+            emailIcon: !!emailIcon,
+            phoneIcon: !!phoneIcon,
+            locationIcon: !!locationIcon,
+            contactItems: contactItems.length,
+            avatarPatterns: avatarPatterns.length,
+            sidebarGradient: sidebarStyle.background.includes('gradient')
+          });
+          
+          return emailIcon && phoneIcon && contactItems.length > 0 && avatarPatterns.length >= 3;
+        }, { timeout: 0 });
+        console.log('✅ Estética verificada e aplicada!');
+      } catch (error) {
+        console.log('⚠️ Verificação estética falhou, continuando...');
+      }
 
-      console.log('✅ Sincronização perfeita completa, gerando PDF...');
+      // TEMPO FINAL PARA ESTABILIZAÇÃO
+      console.log('⏳ Aguardando estabilização final (10 segundos)...');
+      await new Promise(resolve => setTimeout(resolve, 10000));
+
+      console.log('✅ Sincronização e estética completas, gerando PDF...');
 
       
       // Gerar PDF com configurações otimizadas
