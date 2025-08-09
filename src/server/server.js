@@ -75,6 +75,8 @@ async function createBrowser() {
   
   const browserOptions = {
     headless: true,
+    timeout: 60000,
+    protocolTimeout: 60000,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -82,7 +84,41 @@ async function createBrowser() {
       '--disable-gpu',
       '--single-process',
       '--disable-web-security',
-      '--disable-features=VizDisplayCompositor'
+      '--disable-features=VizDisplayCompositor',
+      '--disable-background-timer-throttling',
+      '--disable-renderer-backgrounding',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-features=TranslateUI',
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-accelerated-2d-canvas',
+      '--disable-ipc-flooding-protection',
+      '--disable-hang-monitor',
+      '--disable-client-side-phishing-detection',
+      '--disable-popup-blocking',
+      '--disable-prompt-on-repost',
+      '--disable-sync',
+      '--disable-translate',
+      '--disable-default-apps',
+      '--disable-background-networking',
+      '--disable-background-downloads',
+      '--disable-add-to-shelf',
+      '--disable-breakpad',
+      '--disable-component-update',
+      '--disable-domain-reliability',
+      '--disable-features=AudioServiceOutOfProcess',
+      '--disable-print-preview',
+      '--disable-speech-api',
+      '--hide-scrollbars',
+      '--mute-audio',
+      '--no-default-browser-check',
+      '--no-pings',
+      '--use-mock-keychain',
+      '--disable-dev-shm-usage',
+      '--memory-pressure-off',
+      '--max_old_space_size=4096'
     ]
   };
 
@@ -96,12 +132,43 @@ async function createBrowser() {
     for (const path of possiblePaths) {
       if (fs.existsSync(path)) {
         browserOptions.executablePath = path;
+        console.log(`🔧 Usando Chromium: ${path}`);
         break;
       }
     }
+    
+    if (!browserOptions.executablePath) {
+      console.error('❌ Chromium não encontrado nos caminhos padrão');
+      throw new Error('Chromium não encontrado');
+    }
   }
 
-  return await puppeteer.launch(browserOptions);
+  console.log('🚀 Iniciando browser com opções:', {
+    headless: browserOptions.headless,
+    executablePath: browserOptions.executablePath || 'default',
+    argsCount: browserOptions.args.length
+  });
+
+  let browser;
+  let retries = 3;
+  
+  while (retries > 0) {
+    try {
+      browser = await puppeteer.launch(browserOptions);
+      console.log('✅ Browser iniciado com sucesso');
+      return browser;
+    } catch (error) {
+      retries--;
+      console.error(`❌ Tentativa falhou (${3 - retries}/3):`, error.message);
+      
+      if (retries === 0) {
+        throw error;
+      }
+      
+      // Aguardar antes de tentar novamente
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
 }
 
 // ENDPOINT PRINCIPAL - RETORNA PDF DIRETAMENTE PARA N8N
@@ -123,11 +190,16 @@ app.post('/api/generate-pdf', async (req, res) => {
     console.log('🚀 Iniciando geração de PDF...');
     
     // Criar browser
+    console.log('🔧 Criando browser Puppeteer...');
     browser = await createBrowser();
+    console.log('✅ Browser criado com sucesso');
+    
     page = await browser.newPage();
+    console.log('✅ Nova página criada');
     
     // Configurar viewport para A4
     await page.setViewport({ width: 1200, height: 1600 });
+    console.log('✅ Viewport configurado');
     
     // Criar HTML completo com o currículo
     const htmlContent = `
@@ -292,15 +364,19 @@ app.post('/api/generate-pdf', async (req, res) => {
     // Carregar o HTML no Puppeteer
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
-    console.log('✅ HTML carregado no Puppeteer');
+    console.log('✅ HTML carregado no Puppeteer, aguardando renderização...');
     
     // Aguardar renderização completa
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    console.log('✅ Renderização completa');
     
     // Gerar PDF
+    console.log('🔄 Gerando PDF...');
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
+      preferCSSPageSize: false,
+      displayHeaderFooter: false,
       margin: {
         top: '0mm',
         right: '0mm',
@@ -309,11 +385,13 @@ app.post('/api/generate-pdf', async (req, res) => {
       }
     });
     
-    console.log('✅ PDF gerado com sucesso');
+    console.log('✅ PDF gerado com sucesso, tamanho:', pdfBuffer.length, 'bytes');
     
     // Fechar browser
+    console.log('🔄 Fechando browser...');
     await page.close();
     await browser.close();
+    console.log('✅ Browser fechado');
     
     // Definir nome do arquivo
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
@@ -323,17 +401,40 @@ app.post('/api/generate-pdf', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Length', pdfBuffer.length);
     
+    console.log('📤 Enviando PDF para cliente...');
     res.send(pdfBuffer);
+    console.log('✅ PDF enviado com sucesso!');
     
   } catch (error) {
-    console.error('❌ Erro:', error);
+    console.error('❌ Erro detalhado:', {
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause?.message
+    });
     
-    if (page) await page.close().catch(() => {});
-    if (browser) await browser.close().catch(() => {});
+    // Cleanup mais robusto
+    try {
+      if (page && !page.isClosed()) {
+        await page.close();
+        console.log('🧹 Página fechada no cleanup');
+      }
+    } catch (cleanupError) {
+      console.error('⚠️ Erro ao fechar página:', cleanupError.message);
+    }
+    
+    try {
+      if (browser && browser.connected) {
+        await browser.close();
+        console.log('🧹 Browser fechado no cleanup');
+      }
+    } catch (cleanupError) {
+      console.error('⚠️ Erro ao fechar browser:', cleanupError.message);
+    }
     
     res.status(500).json({ 
       error: 'Erro ao gerar PDF', 
-      details: error.message 
+      details: error.message,
+      type: error.constructor.name
     });
   }
 });
