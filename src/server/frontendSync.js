@@ -96,14 +96,61 @@ export function generateSyncedHTML(data) {
         }
         
         /* PADRÃO GEOMÉTRICO INTERNO - EXATO DO FRONTEND */
-        .avatar-pattern { width: 64px !important; height: 64px !important; position: relative !important; }
-        .pattern-circle-1 { position: absolute !important; inset: 0 !important; background: rgba(251, 191, 36, 0.4) !important; border-radius: 50% !important; }
-        .pattern-circle-2 { position: absolute !important; top: 8px !important; left: 8px !important; width: 48px !important; height: 48px !important; background: rgba(251, 191, 36, 0.3) !important; border-radius: 50% !important; }
-        .pattern-circle-3 { position: absolute !important; top: 16px !important; left: 16px !important; width: 32px !important; height: 32px !important; background: rgba(251, 191, 36, 0.5) !important; border-radius: 50% !important; }
-        .pattern-circle-4 { position: absolute !important; top: 24px !important; left: 24px !important; width: 16px !important; height: 16px !important; background: rgba(251, 191, 36, 0.7) !important; border-radius: 50% !important; }
-        .pattern-square-1 { position: absolute !important; top: 4px !important; right: 4px !important; width: 12px !important; height: 12px !important; background: rgba(251, 191, 36, 0.6) !important; border-radius: 2px !important; transform: rotate(45deg) !important; }
-        .pattern-square-2 { position: absolute !important; bottom: 4px !important; left: 4px !important; width: 12px !important; height: 12px !important; background: rgba(251, 191, 36, 0.6) !important; border-radius: 2px !important; transform: rotate(45deg) !important; }
-        .pattern-dot { position: absolute !important; bottom: 4px !important; right: 4px !important; width: 8px !important; height: 8px !important; background: rgba(251, 191, 36, 0.8) !important; border-radius: 50% !important; }
+        .avatar-pattern { 
+            width: 64px !important; 
+            height: 64px !important; 
+            position: relative !important; 
+        }
+        .pattern-circle-1 { 
+            position: absolute !important; 
+            top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+            background: rgba(251, 191, 36, 0.4) !important; 
+            border-radius: 50% !important; 
+        }
+        .pattern-circle-2 { 
+            position: absolute !important; 
+            top: 8px !important; left: 8px !important; 
+            width: 48px !important; height: 48px !important; 
+            background: rgba(251, 191, 36, 0.3) !important; 
+            border-radius: 50% !important; 
+        }
+        .pattern-circle-3 { 
+            position: absolute !important; 
+            top: 16px !important; left: 16px !important; 
+            width: 32px !important; height: 32px !important; 
+            background: rgba(251, 191, 36, 0.5) !important; 
+            border-radius: 50% !important; 
+        }
+        .pattern-circle-4 { 
+            position: absolute !important; 
+            top: 24px !important; left: 24px !important; 
+            width: 16px !important; height: 16px !important; 
+            background: rgba(251, 191, 36, 0.7) !important; 
+            border-radius: 50% !important; 
+        }
+        .pattern-square-1 { 
+            position: absolute !important; 
+            top: 4px !important; right: 4px !important; 
+            width: 12px !important; height: 12px !important; 
+            background: rgba(251, 191, 36, 0.6) !important; 
+            border-radius: 2px !important; 
+            transform: rotate(45deg) !important; 
+        }
+        .pattern-square-2 { 
+            position: absolute !important; 
+            bottom: 4px !important; left: 4px !important; 
+            width: 12px !important; height: 12px !important; 
+            background: rgba(251, 191, 36, 0.6) !important; 
+            border-radius: 2px !important; 
+            transform: rotate(45deg) !important; 
+        }
+        .pattern-dot { 
+            position: absolute !important; 
+            bottom: 4px !important; right: 4px !important; 
+            width: 8px !important; height: 8px !important; 
+            background: rgba(251, 191, 36, 0.8) !important; 
+            border-radius: 50% !important; 
+        }
     </style>
 </head>
 <body>
