@@ -62,82 +62,80 @@ export class PDFDownloadService {
       // Aguardar renderização completa do CSS
       console.log('⏳ Aguardando renderização completa - SEM LIMITE DE TEMPO...');
       
-      // Aguardar elementos EXATOS do frontend - SEM TIMEOUT
+      // Aguardar elementos EXTRAÍDOS AUTOMATICAMENTE do React - SEM TIMEOUT
       try {
         await page.waitForSelector('#curriculo-preview', { timeout: 0 });
-        console.log('✅ Container principal encontrado');
+        console.log('✅ Container principal (extraído do React) encontrado');
         
         await page.waitForSelector('.w-24.h-24', { timeout: 0 });
-        console.log('✅ Avatar geométrico encontrado');
+        console.log('✅ Avatar geométrico (extraído do React) encontrado');
         
         await page.waitForSelector('.flex.items-center.space-x-3', { timeout: 0 });
-        console.log('✅ Items de contato encontrados');
+        console.log('✅ Items de contato (extraídos do React) encontrados');
         
         await page.waitForSelector('.w-1\\/3', { timeout: 0 });
-        console.log('✅ Sidebar encontrada');
+        console.log('✅ Sidebar (extraída do React) encontrada');
         
         await page.waitForSelector('.w-2\\/3', { timeout: 0 });
-        console.log('✅ Conteúdo principal encontrado');
+        console.log('✅ Conteúdo principal (extraído do React) encontrado');
         
         await page.waitForSelector('.bg-yellow-400\\/40', { timeout: 0 });
-        console.log('✅ Gradientes encontrados');
+        console.log('✅ Padrões geométricos (extraídos do React) encontrados');
       } catch (error) {
-        console.log('⚠️ Alguns elementos não encontrados, continuando...');
+        console.log('⚠️ Alguns elementos extraídos do React não encontrados, continuando...');
       }
       
-      // Aguardar renderização Tailwind - SEM TIMEOUT
-      console.log('⏳ Aguardando CSS Tailwind ser aplicado...');
+      // Aguardar renderização com variáveis CSS - SEM TIMEOUT
+      console.log('⏳ Aguardando variáveis CSS extraídas do React serem aplicadas...');
       try {
         await page.waitForFunction(() => {
-        const sidebar = document.querySelector('.w-1\\/3');
-        const mainContent = document.querySelector('.w-2\\/3');
-        const avatar = document.querySelector('.w-24.h-24');
-        const contactItems = document.querySelectorAll('.flex.items-center.space-x-3');
-        
-        if (!sidebar || !mainContent || !avatar || contactItems.length === 0) return false;
-        
-        // Verificar se estilos Tailwind foram aplicados
-        const sidebarStyle = window.getComputedStyle(sidebar);
-        const mainStyle = window.getComputedStyle(mainContent);
-        const avatarStyle = window.getComputedStyle(avatar);
-        const contactStyle = window.getComputedStyle(contactItems[0]);
-        
-        // Verificar propriedades Tailwind
-        const sidebarWidth = parseFloat(sidebarStyle.width);
-        const mainWidth = parseFloat(mainStyle.width);
-        const avatarSize = parseFloat(avatarStyle.width);
-        const sidebarBg = sidebarStyle.background;
-        
-        return sidebarWidth > 200 && 
-               mainWidth > 400 && 
-               avatarSize >= 90 &&
-               sidebarBg.includes('gradient');
+          // Verificar variáveis CSS extraídas do React
+          const rootStyles = window.getComputedStyle(document.documentElement);
+          const sidebarWidth = rootStyles.getPropertyValue('--sidebar-width');
+          const avatarSize = rootStyles.getPropertyValue('--avatar-size');
+          const iconSize = rootStyles.getPropertyValue('--icon-size');
+          
+          // Verificar elementos com variáveis aplicadas
+          const sidebar = document.querySelector('.w-1\\/3');
+          const avatar = document.querySelector('.w-24.h-24');
+          const icons = document.querySelectorAll('.w-4.h-4');
+          
+          if (!sidebar || !avatar || icons.length === 0) return false;
+          
+          const sidebarStyle = window.getComputedStyle(sidebar);
+          const avatarStyle = window.getComputedStyle(avatar);
+          const iconStyle = window.getComputedStyle(icons[0]);
+          
+          return sidebarStyle.width.includes('33.333') && 
+                 avatarStyle.width === '96px' && 
+                 iconStyle.width === '16px' &&
+                 sidebarWidth && avatarSize && iconSize;
         }, { timeout: 0 });
-        console.log('✅ CSS Tailwind aplicado completamente');
+        console.log('✅ Variáveis CSS extraídas do React aplicadas completamente');
       } catch (error) {
-        console.log('⚠️ CSS Tailwind pode não estar 100% aplicado, continuando...');
+        console.log('⚠️ Variáveis CSS podem não estar 100% aplicadas, continuando...');
       }
 
       // VERIFICAÇÃO FINAL DE ESTÉTICA
-      console.log('🎨 Verificando estética final...');
+      console.log('🎨 Verificando estética extraída do React...');
       try {
         await page.waitForFunction(() => {
-          // Verificar cores dos ícones
+          // Verificar cores dos ícones extraídas do React
           const emailIcon = document.querySelector('.text-cyan-200');
           const phoneIcon = document.querySelector('.text-yellow-300');
           const locationIcon = document.querySelector('.text-cyan-300');
           
-          // Verificar backgrounds translúcidos
+          // Verificar backgrounds translúcidos extraídos do React
           const contactItems = document.querySelectorAll('.bg-white\\/10');
           
-          // Verificar avatar geométrico
+          // Verificar padrões geométricos extraídos do React
           const avatarPatterns = document.querySelectorAll('.bg-yellow-400\\/40, .bg-yellow-400\\/30, .bg-yellow-400\\/50');
           
-          // Verificar gradientes
+          // Verificar gradientes extraídos do React
           const sidebar = document.querySelector('.bg-gradient-to-br');
           const sidebarStyle = window.getComputedStyle(sidebar);
           
-          console.log('🔍 Verificações:', {
+          console.log('🔍 Verificações automáticas do React:', {
             emailIcon: !!emailIcon,
             phoneIcon: !!phoneIcon,
             locationIcon: !!locationIcon,
@@ -148,16 +146,16 @@ export class PDFDownloadService {
           
           return emailIcon && phoneIcon && contactItems.length > 0 && avatarPatterns.length >= 3;
         }, { timeout: 0 });
-        console.log('✅ Estética verificada e aplicada!');
+        console.log('✅ Estética extraída do React verificada e aplicada!');
       } catch (error) {
-        console.log('⚠️ Verificação estética falhou, continuando...');
+        console.log('⚠️ Verificação estética automática falhou, continuando...');
       }
 
       // TEMPO FINAL PARA ESTABILIZAÇÃO
       console.log('⏳ Aguardando estabilização final (10 segundos)...');
       await new Promise(resolve => setTimeout(resolve, 10000));
 
-      console.log('✅ Sincronização e estética completas, gerando PDF...');
+      console.log('✅ Sincronização automática com React completa, gerando PDF...');
 
       
       // Gerar PDF com configurações otimizadas

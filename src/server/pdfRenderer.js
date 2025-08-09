@@ -1,20 +1,20 @@
 // RENDERIZADOR DE PDF SEM JSDOM
 // Usa o próprio frontend para renderizar e retorna via API
 
-import { generatePerfectSyncHTML } from './perfectSync.js';
+import { generateSyncedHTML } from './frontendSync.js';
 
 export async function renderPDFViaFrontend(data) {
-  console.log('🚀 RENDERIZADOR PERFEITO: Sincronização 100% com frontend...');
+  console.log('🚀 RENDERIZADOR AUTOMÁTICO: Sincronização automática com React...');
   
   try {
-    // Usar sincronização perfeita
-    const perfectHTML = generatePerfectSyncHTML(data);
+    // Usar sincronização automática
+    const syncedHTML = generateSyncedHTML(data);
     
-    console.log('✅ HTML perfeito gerado - 100% sincronizado com frontend');
-    return perfectHTML;
+    console.log('✅ HTML sincronizado automaticamente com React gerado');
+    return syncedHTML;
     
   } catch (error) {
-    console.error('❌ RENDERIZADOR PERFEITO: Erro:', error);
+    console.error('❌ RENDERIZADOR AUTOMÁTICO: Erro:', error);
     throw error;
   }
 }
