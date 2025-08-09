@@ -70,7 +70,15 @@ export async function renderPDFViaFrontend(data) {
           console.log('✅ PDF gerado com sistema do frontend!');
           return pdf.output('arraybuffer');
         });
+        
+        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
+        return Buffer.from(pdfArrayBuffer);
+          } catch (error) {
+            console.error('❌ Erro ao gerar PDF:', error);
+            throw error;
           }
+}
+
 // Função para gerar HTML unificado com CSS puro inline
 function generateUnifiedHTML(data) {
   return `
@@ -354,6 +362,12 @@ function generateUnifiedHTML(data) {
                         <div class="pattern-4"></div>
                         <div class="pattern-5"></div>
                         <div class="pattern-6"></div>
+                        <div class="pattern-7"></div>
+                    </div>
+                </div>
+                <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
+            </div>
+            
             <div class="sidebar-section">
                 <h3 class="sidebar-title">CONTATO</h3>
                 ${data.email ? `
@@ -387,7 +401,7 @@ function generateUnifiedHTML(data) {
                 </div>
                 ` : ''}
             </div>
-                        <div class="pattern-7"></div>
+            
             ${(data.cpf || data.rg || data.nascimento) ? `
             <div class="sidebar-section">
                 <h3 class="sidebar-title">DADOS PESSOAIS</h3>
@@ -398,7 +412,7 @@ function generateUnifiedHTML(data) {
                 </div>
             </div>
             ` : ''}
-                    </div>
+            
             ${data.disponibilidade ? `
             <div class="sidebar-section">
                 <h3 class="sidebar-title">DISPONIBILIDADE</h3>
@@ -408,7 +422,7 @@ function generateUnifiedHTML(data) {
             </div>
             ` : ''}
         </div>
-                </div>
+        
         <!-- Conteúdo Principal -->
         <div class="main-content">
             ${data.escolaridade ? `
@@ -422,7 +436,7 @@ function generateUnifiedHTML(data) {
                 </div>
             </div>
             ` : ''}
-                <h1 class="profile-name">${data.nome || 'Seu Nome'}</h1>
+            
             ${data.experiencia ? `
             <div class="content-section">
                 <h3 class="content-title">
@@ -432,8 +446,8 @@ function generateUnifiedHTML(data) {
                     <div class="content-text">${data.experiencia}</div>
                 </div>
             </div>
-        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
-        return Buffer.from(pdfArrayBuffer);
+            ` : ''}
+            
             ${data.cursos ? `
             <div class="content-section">
                 <h3 class="content-title">
