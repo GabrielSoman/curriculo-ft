@@ -5,6 +5,13 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import puppeteer from 'puppeteer-core';
 
+// Configurações globais
+const MAX_CONCURRENT_REQUESTS = 2;
+const REQUEST_TIMEOUT = 120000; // 2 minutos
+let activeRequests = 0;
+let browserInstance = null;
+let browserCreationPromise = null;
+
 const app = express();
 const PORT = process.env.PORT || 80;
 
@@ -70,11 +77,11 @@ function convertN8NData(n8nData) {
 }
 
 // Criar browser Puppeteer
-async function createBrowser() {
+async function createBrowserInstance() {
   const isProduction = process.env.NODE_ENV === 'production';
   
   const browserOptions = {
-    headless: true,
+    headless: 'new',
     timeout: 60000,
     protocolTimeout: 60000,
     args: [
@@ -116,9 +123,14 @@ async function createBrowser() {
       '--no-default-browser-check',
       '--no-pings',
       '--use-mock-keychain',
-      '--disable-dev-shm-usage',
       '--memory-pressure-off',
-      '--max_old_space_size=4096'
+      '--max_old_space_size=4096',
+      '--disable-crash-reporter',
+      '--disable-logging',
+      '--disable-login-animations',
+      '--disable-notifications',
+      '--run-all-compositor-stages-before-draw',
+      '--disable-checker-imaging'
     ]
   };
 
@@ -149,12 +161,11 @@ async function createBrowser() {
     argsCount: browserOptions.args.length
   });
 
-  let browser;
   let retries = 3;
   
   while (retries > 0) {
     try {
-      browser = await puppeteer.launch(browserOptions);
+      const browser = await puppeteer.launch(browserOptions);
       console.log('✅ Browser iniciado com sucesso');
       return browser;
     } catch (error) {
@@ -171,10 +182,66 @@ async function createBrowser() {
   }
 }
 
+// Gerenciar instância única do browser
+async function getBrowser() {
+  if (browserInstance && browserInstance.connected) {
+    return browserInstance;
+  }
+  
+  if (browserCreationPromise) {
+    return await browserCreationPromise;
+  }
+  
+  browserCreationPromise = createBrowserInstance();
+  
+  try {
+    browserInstance = await browserCreationPromise;
+    browserCreationPromise = null;
+    return browserInstance;
+  } catch (error) {
+    browserCreationPromise = null;
+    throw error;
+  }
+}
+
+// Middleware para limitar requisições concorrentes
+const rateLimitMiddleware = (req, res, next) => {
+  if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
+    return res.status(429).json({
+      error: 'Muitas requisições simultâneas',
+      message: 'Tente novamente em alguns segundos',
+      activeRequests: activeRequests,
+      maxConcurrent: MAX_CONCURRENT_REQUESTS
+    });
+  }
+  
+  activeRequests++;
+  console.log(`📊 Requisições ativas: ${activeRequests}/${MAX_CONCURRENT_REQUESTS}`);
+  
+  // Cleanup quando a requisição terminar
+  const cleanup = () => {
+    activeRequests--;
+    console.log(`📊 Requisições ativas: ${activeRequests}/${MAX_CONCURRENT_REQUESTS}`);
+  };
+  
+  res.on('finish', cleanup);
+  res.on('close', cleanup);
+  res.on('error', cleanup);
+  
+  next();
+};
 // ENDPOINT PRINCIPAL - RETORNA PDF DIRETAMENTE PARA N8N
-app.post('/api/generate-pdf', async (req, res) => {
+app.post('/api/generate-pdf', rateLimitMiddleware, async (req, res) => {
   let browser = null;
   let page = null;
+  
+  // Timeout para a requisição
+  const timeoutId = setTimeout(() => {
+    console.error('⏰ Timeout da requisição após 2 minutos');
+    if (!res.headersSent) {
+      res.status(408).json({ error: 'Timeout na geração do PDF' });
+    }
+  }, REQUEST_TIMEOUT);
   
   try {
     console.log('📥 Dados recebidos via API N8N');
@@ -191,8 +258,8 @@ app.post('/api/generate-pdf', async (req, res) => {
     
     // Criar browser
     console.log('🔧 Criando browser Puppeteer...');
-    browser = await createBrowser();
-    console.log('✅ Browser criado com sucesso');
+    browser = await getBrowser();
+    console.log('✅ Browser obtido com sucesso');
     
     page = await browser.newPage();
     console.log('✅ Nova página criada');
@@ -388,10 +455,11 @@ app.post('/api/generate-pdf', async (req, res) => {
     console.log('✅ PDF gerado com sucesso, tamanho:', pdfBuffer.length, 'bytes');
     
     // Fechar browser
-    console.log('🔄 Fechando browser...');
-    await page.close();
-    await browser.close();
-    console.log('✅ Browser fechado');
+    console.log('🔄 Fechando página...');
+    if (page && !page.isClosed()) {
+      await page.close();
+      console.log('✅ Página fechada');
+    }
     
     // Definir nome do arquivo
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
@@ -405,12 +473,16 @@ app.post('/api/generate-pdf', async (req, res) => {
     res.send(pdfBuffer);
     console.log('✅ PDF enviado com sucesso!');
     
+    clearTimeout(timeoutId);
+    
   } catch (error) {
     console.error('❌ Erro detalhado:', {
       message: error.message,
       stack: error.stack,
       cause: error.cause?.message
     });
+    
+    clearTimeout(timeoutId);
     
     // Cleanup mais robusto
     try {
@@ -422,27 +494,28 @@ app.post('/api/generate-pdf', async (req, res) => {
       console.error('⚠️ Erro ao fechar página:', cleanupError.message);
     }
     
-    try {
-      if (browser && browser.connected) {
-        await browser.close();
-        console.log('🧹 Browser fechado no cleanup');
-      }
-    } catch (cleanupError) {
-      console.error('⚠️ Erro ao fechar browser:', cleanupError.message);
+    // Não fechar o browser compartilhado em caso de erro
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Erro ao gerar PDF', 
+        details: error.message,
+        type: error.constructor.name
+      });
     }
-    
-    res.status(500).json({ 
-      error: 'Erro ao gerar PDF', 
-      details: error.message,
-      type: error.constructor.name
-    });
   }
 });
 
 // Endpoint alternativo que retorna JSON com base64 (para compatibilidade)
-app.post('/api/generate-pdf-json', async (req, res) => {
+app.post('/api/generate-pdf-json', rateLimitMiddleware, async (req, res) => {
   let browser = null;
   let page = null;
+  
+  const timeoutId = setTimeout(() => {
+    console.error('⏰ Timeout da requisição JSON após 2 minutos');
+    if (!res.headersSent) {
+      res.status(408).json({ error: 'Timeout na geração do PDF' });
+    }
+  }, REQUEST_TIMEOUT);
   
   try {
     console.log('📥 Dados recebidos via API JSON');
@@ -458,7 +531,7 @@ app.post('/api/generate-pdf-json', async (req, res) => {
     console.log('🚀 Iniciando geração de PDF JSON...');
     
     // Criar browser
-    browser = await createBrowser();
+    browser = await getBrowser();
     page = await browser.newPage();
     
     // Configurar viewport para A4
@@ -647,8 +720,9 @@ app.post('/api/generate-pdf-json', async (req, res) => {
     console.log('✅ PDF gerado com sucesso');
     
     // Fechar browser
-    await page.close();
-    await browser.close();
+    if (page && !page.isClosed()) {
+      await page.close();
+    }
     
     // Definir nome do arquivo
     const fileName = `Curriculo_${data.nome.replace(/\s+/g, '_')}.pdf`;
@@ -661,16 +735,23 @@ app.post('/api/generate-pdf-json', async (req, res) => {
       message: 'PDF gerado com sucesso'
     });
     
+    clearTimeout(timeoutId);
+    
   } catch (error) {
     console.error('❌ Erro:', error);
     
-    if (page) await page.close().catch(() => {});
-    if (browser) await browser.close().catch(() => {});
+    clearTimeout(timeoutId);
     
-    res.status(500).json({ 
-      error: 'Erro ao gerar PDF', 
-      details: error.message 
-    });
+    if (page && !page.isClosed()) {
+      await page.close().catch(() => {});
+    }
+    
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Erro ao gerar PDF', 
+        details: error.message 
+      });
+    }
   }
 });
 
@@ -697,6 +778,9 @@ app.post('/api/test-conversion', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok',
+    activeRequests: activeRequests,
+    maxConcurrent: MAX_CONCURRENT_REQUESTS,
+    browserConnected: browserInstance?.connected || false,
     engine: 'Puppeteer PDF Generator',
     method: 'HTML direto para PDF com mesmo design do frontend',
     endpoints: {
@@ -735,9 +819,45 @@ app.get('*', (req, res) => {
   }
 });
 
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('🛑 Recebido SIGTERM, iniciando shutdown graceful...');
+  
+  try {
+    if (browserInstance && browserInstance.connected) {
+      console.log('🔄 Fechando browser...');
+      await browserInstance.close();
+      console.log('✅ Browser fechado');
+    }
+  } catch (error) {
+    console.error('❌ Erro ao fechar browser:', error.message);
+  }
+  
+  console.log('👋 Servidor finalizado');
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('🛑 Recebido SIGINT, iniciando shutdown graceful...');
+  
+  try {
+    if (browserInstance && browserInstance.connected) {
+      console.log('🔄 Fechando browser...');
+      await browserInstance.close();
+      console.log('✅ Browser fechado');
+    }
+  } catch (error) {
+    console.error('❌ Erro ao fechar browser:', error.message);
+  }
+  
+  console.log('👋 Servidor finalizado');
+  process.exit(0);
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`🎯 API N8N: POST http://localhost:${PORT}/api/generate-pdf`);
   console.log(`📄 Retorna PDF diretamente para download`);
   console.log(`✅ Motor: Puppeteer com HTML idêntico ao frontend`);
+  console.log(`⚙️ Configurações: ${MAX_CONCURRENT_REQUESTS} req simultâneas, timeout ${REQUEST_TIMEOUT/1000}s`);
 });
