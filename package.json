@@ -7,13 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "NODE_ENV=production node src/server/serverMicroservice.js",
+    "start": "NODE_ENV=production node src/server/serverUnified.js",
     "start:dev": "NODE_ENV=development node src/server/server.js",
     "start:microservice": "NODE_ENV=production node src/server/serverMicroservice.js",
+    "start:unified": "NODE_ENV=production node src/server/serverUnified.js",
     "easypanel": "npm run build && npm start",
     "test-api": "node test-n8n-api.js",
     "test-local": "NODE_ENV=development API_URL=http://localhost:80 npm run test-api",
-    "test-microservice": "node test-microservice-api.js"
+    "test-microservice": "node test-microservice-api.js",
+    "test-unified": "node test-unified-engine.js"
   },
   "dependencies": {
     "chromium": "^3.0.3",
