@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "NODE_ENV=production node src/server/server.js",
+    "start": "NODE_ENV=production node src/server/serverOptimized.js",
     "start:dev": "NODE_ENV=development node src/server/server.js",
+    "start:unified": "NODE_ENV=production node src/server/serverOptimized.js",
     "easypanel": "npm run build && npm start",
     "test-api": "node test-n8n-api.js",
-    "test-local": "NODE_ENV=development API_URL=http://localhost:80 npm run test-api"
+    "test-local": "NODE_ENV=development API_URL=http://localhost:80 npm run test-api",
+    "test-unified": "node test-unified-api.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
