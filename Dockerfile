@@ -54,11 +54,11 @@ RUN npm ci --only=production --no-audit --no-fund && \
     npm cache clean --force
 
 # Create necessary directories and set permissions
-RUN mkdir -p /tmp /app/.cache /var/run/dbus && \
+RUN mkdir -p /tmp /app/.cache /var/run/dbus /dev/shm && \
     chmod 777 /tmp && \
+    chmod 777 /dev/shm && \
     chmod 755 /var/run/dbus && \
-    chown -R nextjs:nodejs /app/.cache && \
-    dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
+    chown -R nextjs:nodejs /app/.cache
 
 # Switch to non-root user
 USER nextjs
@@ -66,7 +66,7 @@ USER nextjs
 # Set Puppeteer environment variables
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    PUPPETEER_ARGS="--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--no-first-run,--no-zygote,--single-process,--disable-gpu,--disable-background-timer-throttling,--disable-renderer-backgrounding,--disable-backgrounding-occluded-windows,--disable-features=TranslateUI,--disable-extensions,--disable-component-extensions-with-background-pages" \
+    PUPPETEER_ARGS="--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--no-first-run,--no-zygote,--single-process,--disable-gpu,--disable-background-timer-throttling,--disable-renderer-backgrounding,--disable-backgrounding-occluded-windows,--disable-features=TranslateUI,--disable-extensions,--disable-component-extensions-with-background-pages\" \
     DISPLAY=:99
 
 # Set port environment variable
