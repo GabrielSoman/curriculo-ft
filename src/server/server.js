@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import htmlPdf from 'html-pdf-node';
+import { chromium } from 'playwright-chromium';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -522,14 +522,31 @@ app.post('/api/generate-pdf', async (req, res) => {
     };
 
     try {
-      // Gerar PDF real
-      const file = { content: html };
-      const options = { 
+      // Gerar PDF com Playwright (mais estável em containers)
+      const browser = await chromium.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ]
+      });
+      
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle' });
+      
+      const pdfBuffer = await page.pdf({
         format: 'A4',
         margin: { top: '0', right: '0', bottom: '0', left: '0' },
         printBackground: true
-      };
-      const pdfBuffer = await htmlPdf.generatePdf(file, options);
+      });
+      
+      await browser.close();
       const pdfBase64 = pdfBuffer.toString('base64');
       
       res.json({
