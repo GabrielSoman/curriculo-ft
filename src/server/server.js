@@ -528,6 +528,8 @@ app.post('/api/generate-pdf', async (req, res) => {
     
     // Criar navegador com retry
     let browser = null;
+    let pdfBuffer = null;
+    let page = null;
     let attempts = 0;
     const maxAttempts = 3;
     
@@ -547,7 +549,9 @@ app.post('/api/generate-pdf', async (req, res) => {
       }
     }
     
-    let page = null;
+    let browser = null;
+    let pdfBuffer = null;
+    
     try {
       page = await browser.newPage();
       console.log('✅ Página criada');
@@ -575,7 +579,7 @@ app.post('/api/generate-pdf', async (req, res) => {
       console.log('✅ Aguardou renderização');
       
       // Gerar PDF
-      const pdfBuffer = await page.pdf({
+      pdfBuffer = await page.pdf({
         format: 'A4',
         margin: { top: 0, right: 0, bottom: 0, left: 0 },
         printBackground: true,
@@ -601,9 +605,10 @@ app.post('/api/generate-pdf', async (req, res) => {
       throw pageError;
     }
     
-    // Fechar browser
-    await browser.close();
-    browser = null;
+    // Verificar se PDF foi gerado
+    if (!pdfBuffer) {
+      throw new Error('PDF não foi gerado');
+    }
     
     // Converter para base64
     const pdfBase64 = pdfBuffer.toString('base64');
