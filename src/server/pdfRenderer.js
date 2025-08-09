@@ -13,61 +13,97 @@ export async function renderPDFViaFrontend(data) {
   try {
     const distPath = path.join(__dirname, '../../dist');
     
-              document.head.appendChild(script1);
-            });
-          }
-          
-          if (!window.jspdf) {
-            await new Promise((resolve, reject) => {
-              const script2 = document.createElement('script');
-              script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-              script2.onload = resolve;
-              script2.onerror = reject;
-              document.head.appendChild(script2);
-            });
-          }
-          
-          // Aguardar scripts carregarem
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // USAR EXATAMENTE O MESMO CÓDIGO DO FRONTEND
-          const element = document.getElementById('curriculo-preview');
-          if (!element) {
-            throw new Error('Elemento curriculo-preview não encontrado');
-          }
-          
-          console.log('📸 Capturando com html2canvas...');
-          const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            width: element.scrollWidth,
-            height: element.scrollHeight,
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight
-          });
-
-          console.log('📄 Gerando PDF com jsPDF...');
-          const imgData = canvas.toDataURL('image/png');
-          const { jsPDF } = window.jspdf;
-          const pdf = new jsPDF('p', 'mm', 'a4');
-          
-          const imgWidth = 210;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-          
-          console.log('✅ PDF gerado com sistema do frontend!');
-          return pdf.output('arraybuffer');
+    // Gerar HTML unificado
+    const htmlContent = generateUnifiedHTML(data);
+    
+    // Salvar arquivo temporário
+    const tempHtmlPath = path.join(distPath, 'temp-curriculum.html');
+    fs.writeFileSync(tempHtmlPath, htmlContent);
+    
+    console.log('📄 HTML salvo em:', tempHtmlPath);
+    
+    // Usar Puppeteer para renderizar
+    const puppeteer = await import('puppeteer');
+    const browser = await puppeteer.default.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    await page.goto(`file://${tempHtmlPath}`, { waitUntil: 'networkidle0' });
+    
+    // Aguardar um pouco para garantir que tudo carregou
+    await page.waitForTimeout(2000);
+    
+    // Executar o mesmo código do frontend
+    const pdfArrayBuffer = await page.evaluate(async () => {
+      // Carregar html2canvas se não estiver disponível
+      if (!window.html2canvas) {
+        await new Promise((resolve, reject) => {
+          const script1 = document.createElement('script');
+          script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          script1.onload = resolve;
+          script1.onerror = reject;
+          document.head.appendChild(script1);
         });
-        
-        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
-        return Buffer.from(pdfArrayBuffer);
-          } catch (error) {
-            console.error('❌ Erro ao gerar PDF:', error);
-            throw error;
-          }
+      }
+      
+      if (!window.jspdf) {
+        await new Promise((resolve, reject) => {
+          const script2 = document.createElement('script');
+          script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          script2.onload = resolve;
+          script2.onerror = reject;
+          document.head.appendChild(script2);
+        });
+      }
+      
+      // Aguardar scripts carregarem
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // USAR EXATAMENTE O MESMO CÓDIGO DO FRONTEND
+      const element = document.getElementById('curriculum');
+      if (!element) {
+        throw new Error('Elemento curriculum não encontrado');
+      }
+      
+      console.log('📸 Capturando com html2canvas...');
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      });
+
+      console.log('📄 Gerando PDF com jsPDF...');
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      console.log('✅ PDF gerado com sistema do frontend!');
+      return pdf.output('arraybuffer');
+    });
+    
+    await browser.close();
+    
+    // Limpar arquivo temporário
+    fs.unlinkSync(tempHtmlPath);
+    
+    console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
+    return Buffer.from(pdfArrayBuffer);
+  } catch (error) {
+    console.error('❌ Erro ao gerar PDF:', error);
+    throw error;
+  }
 }
 
 // Função para gerar HTML unificado com CSS puro inline
