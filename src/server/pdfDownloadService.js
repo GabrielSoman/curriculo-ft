@@ -67,10 +67,10 @@ export class PDFDownloadService {
         await page.waitForSelector('#curriculo-preview', { timeout: 0 });
         console.log('✅ Container principal encontrado');
         
-        await page.waitForSelector('.w-24', { timeout: 0 }); // Avatar
-        console.log('✅ Avatar encontrado');
+        await page.waitForSelector('.w-24.h-24', { timeout: 0 });
+        console.log('✅ Avatar geométrico encontrado');
         
-        await page.waitForSelector('.flex.items-center.space-x-3', { timeout: 0 }); // Contact items
+        await page.waitForSelector('.flex.items-center.space-x-3', { timeout: 0 });
         console.log('✅ Items de contato encontrados');
         
         await page.waitForSelector('.w-1\\/3', { timeout: 0 }); // Sidebar
@@ -78,6 +78,9 @@ export class PDFDownloadService {
         
         await page.waitForSelector('.w-2\\/3', { timeout: 0 }); // Main content
         console.log('✅ Conteúdo principal encontrado');
+        
+        await page.waitForSelector('.bg-gradient-to-br', { timeout: 0 });
+        console.log('✅ Gradientes encontrados');
       } catch (error) {
         console.log('⚠️ Alguns elementos não encontrados, continuando...');
       }

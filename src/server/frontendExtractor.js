@@ -103,7 +103,7 @@ export function generateSyncedHTML(data) {
           </div>
           
           <div class="text-center mb-6">
-            <div class="w-24 h-24 bg-gradient-to-br from-yellow-400/30 to-white/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/40 relative overflow-hidden profile-avatar">
+            <div class="w-24 h-24 bg-gradient-to-br from-yellow-400/30 to-white/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm border-2 border-white/40 relative overflow-hidden">
               <!-- Padrão geométrico EXATO -->
               <div class="absolute inset-0 flex items-center justify-center">
                 <div class="w-16 h-16 relative">
