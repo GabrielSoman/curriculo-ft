@@ -61,12 +61,15 @@ export class PDFDownloadService {
 
       // Aguardar renderização completa do CSS
       await page.waitForFunction(() => {
-        const element = document.getElementById('curriculo-preview');
-        return element && getComputedStyle(element).width !== 'auto';
+        const sidebar = document.querySelector('.w-1\\/3');
+        const mainContent = document.querySelector('.w-2\\/3');
+        return sidebar && mainContent && 
+               getComputedStyle(sidebar).width !== 'auto' &&
+               getComputedStyle(mainContent).width !== 'auto';
       }, { timeout: 10000 });
 
       // Aguardar mais tempo para garantir renderização
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 5000));
 
       console.log('⏳ Aguardando renderização completa...');
 

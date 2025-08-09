@@ -77,9 +77,9 @@ export async function renderPDFViaFrontend(data) {
     <div id="pdf-container">
         <!-- Container que será renderizado - FORÇAR ESTILOS INLINE -->
         <div id="curriculo-preview" class="bg-white shadow-2xl mx-auto transform origin-top-left overflow-hidden" style="width: 210mm !important; height: 297mm !important; font-size: 11px !important; line-height: 1.5 !important; font-family: system-ui, -apple-system, sans-serif !important; transform: scale(1) !important; transform-origin: top left !important; display: flex !important;">
-          <div class="flex h-full">
+          <div class="flex h-full" style="display: flex !important; height: 100% !important; width: 100% !important;">
             <!-- Sidebar -->
-            <div class="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden" style="width: 33.333333% !important; background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%) !important; color: white !important; padding: 24px !important; position: relative !important; overflow: hidden !important;">
+            <div class="w-1/3 bg-gradient-to-br from-slate-800 via-teal-800 to-cyan-800 text-white p-6 relative overflow-hidden" style="width: 264px !important; flex-shrink: 0 !important; background: linear-gradient(135deg, #1e293b 0%, #0f766e 50%, #0891b2 100%) !important; color: white !important; padding: 24px !important; position: relative !important; overflow: hidden !important;">
               <!-- Background Pattern -->
               <div class="absolute inset-0 opacity-10" style="position: absolute !important; inset: 0 !important; opacity: 0.1 !important;">
                 <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 128px !important; height: 128px !important; background: white !important; border-radius: 50% !important; transform: translate(-64px, -64px) !important;"></div>
@@ -164,41 +164,41 @@ export async function renderPDFViaFrontend(data) {
             </div>
 
             <!-- Conteúdo Principal -->
-            <div class="w-2/3 p-6 bg-gradient-to-br from-gray-50 to-white">
+            <div class="w-2/3 p-6 bg-gradient-to-br from-gray-50 to-white" style="width: 530px !important; flex-shrink: 0 !important; padding: 24px !important; background: linear-gradient(135deg, #f9fafb 0%, white 100%) !important;">
               <div class="space-y-6">
                 ${data.escolaridade ? `
                 <div>
-                  <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                    <span class="text-teal-800 font-extrabold tracking-wide">EDUCAÇÃO</span>
-                    <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                  <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative" style="font-size: 18px !important; font-weight: bold !important; color: #374151 !important; margin-bottom: 12px !important; padding-bottom: 8px !important; position: relative !important;">
+                    <span class="text-teal-800 font-extrabold tracking-wide" style="color: #0f766e !important; font-weight: 800 !important; letter-spacing: 0.5px !important;">EDUCAÇÃO</span>
+                    <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full" style="position: absolute !important; bottom: 0 !important; left: 0 !important; width: 48px !important; height: 4px !important; background: linear-gradient(90deg, #0f766e 0%, #0891b2 100%) !important; border-radius: 2px !important;"></div>
                   </h3>
-                  <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-teal-800">
-                    <div class="font-bold text-gray-800 text-sm">${data.escolaridade}</div>
-                    ${data.instituicao ? `<div class="text-gray-600 mt-1 font-medium">${data.instituicao}</div>` : ''}
+                  <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-teal-800" style="background: white !important; padding: 12px !important; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; border-left: 4px solid #0f766e !important;">
+                    <div class="font-bold text-gray-800 text-sm" style="font-weight: bold !important; color: #374151 !important; font-size: 12px !important; margin-bottom: 4px !important;">${data.escolaridade}</div>
+                    ${data.instituicao ? `<div class="text-gray-600 mt-1 font-medium" style="color: #6b7280 !important; font-weight: 500 !important; font-size: 11px !important;">${data.instituicao}</div>` : ''}
                   </div>
                 </div>
                 ` : ''}
 
                 ${data.experiencia ? `
                 <div>
-                  <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                    <span class="text-teal-800 font-extrabold tracking-wide">EXPERIÊNCIA PROFISSIONAL</span>
-                    <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                  <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative" style="font-size: 18px !important; font-weight: bold !important; color: #374151 !important; margin-bottom: 12px !important; padding-bottom: 8px !important; position: relative !important;">
+                    <span class="text-teal-800 font-extrabold tracking-wide" style="color: #0f766e !important; font-weight: 800 !important; letter-spacing: 0.5px !important;">EXPERIÊNCIA PROFISSIONAL</span>
+                    <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full" style="position: absolute !important; bottom: 0 !important; left: 0 !important; width: 48px !important; height: 4px !important; background: linear-gradient(90deg, #0f766e 0%, #0891b2 100%) !important; border-radius: 2px !important;"></div>
                   </h3>
-                  <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-cyan-600">
-                    <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed">${data.experiencia}</div>
+                  <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-cyan-600" style="background: white !important; padding: 12px !important; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; border-left: 4px solid #0891b2 !important;">
+                    <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed" style="font-size: 11px !important; color: #374151 !important; line-height: 1.6 !important; white-space: pre-line !important; word-wrap: break-word !important;">${data.experiencia}</div>
                   </div>
                 </div>
                 ` : ''}
 
                 ${data.cursos ? `
                 <div>
-                  <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative">
-                    <span class="text-teal-800 font-extrabold tracking-wide">CURSOS E CERTIFICAÇÕES</span>
-                    <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full"></div>
+                  <h3 class="text-lg font-bold text-gray-800 mb-3 pb-2 relative" style="font-size: 18px !important; font-weight: bold !important; color: #374151 !important; margin-bottom: 12px !important; padding-bottom: 8px !important; position: relative !important;">
+                    <span class="text-teal-800 font-extrabold tracking-wide" style="color: #0f766e !important; font-weight: 800 !important; letter-spacing: 0.5px !important;">CURSOS E CERTIFICAÇÕES</span>
+                    <div class="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-teal-800 to-cyan-600 rounded-full" style="position: absolute !important; bottom: 0 !important; left: 0 !important; width: 48px !important; height: 4px !important; background: linear-gradient(90deg, #0f766e 0%, #0891b2 100%) !important; border-radius: 2px !important;"></div>
                   </h3>
-                  <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
-                    <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed">${data.cursos}</div>
+                  <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500" style="background: white !important; padding: 12px !important; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; border-left: 4px solid #3b82f6 !important;">
+                    <div class="text-sm whitespace-pre-line text-gray-700 leading-relaxed" style="font-size: 11px !important; color: #374151 !important; line-height: 1.6 !important; white-space: pre-line !important; word-wrap: break-word !important;">${data.cursos}</div>
                   </div>
                 </div>
                 ` : ''}
