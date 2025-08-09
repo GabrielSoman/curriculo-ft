@@ -61,15 +61,20 @@ export class PDFDownloadService {
 
       // Aguardar renderização completa do CSS
       await page.waitForFunction(() => {
+        // Aguardar elementos críticos renderizarem
+        const avatar = document.querySelector('.profile-avatar');
         const sidebar = document.querySelector('.w-1\\/3');
         const mainContent = document.querySelector('.w-2\\/3');
-        return sidebar && mainContent && 
-               getComputedStyle(sidebar).width !== 'auto' &&
-               getComputedStyle(mainContent).width !== 'auto';
-      }, { timeout: 10000 });
+        const patterns = document.querySelectorAll('.pattern-circle-1, .pattern-circle-2, .pattern-circle-3, .pattern-circle-4');
+        
+        return avatar && sidebar && mainContent && patterns.length >= 4 &&
+               getComputedStyle(avatar).background.includes('rgba') &&
+               getComputedStyle(sidebar).background.includes('linear-gradient') &&
+               getComputedStyle(mainContent).background.includes('linear-gradient');
+      }, { timeout: 15000 });
 
-      // Aguardar mais tempo para garantir renderização
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Aguardar mais tempo para garantir renderização completa dos gradientes e padrões
+      await new Promise(resolve => setTimeout(resolve, 8000));
 
       console.log('⏳ Aguardando renderização completa...');
 
