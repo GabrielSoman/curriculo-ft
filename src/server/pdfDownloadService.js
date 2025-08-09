@@ -15,6 +15,130 @@ export async function renderPDFViaFrontend(data) {
     
               script2.onerror = reject;
               document.head.appendChild(script2);
+        
+        // Sistema completo de PDF - COPIADO DO FRONTEND
+        window.initPDFSystem = function() {
+          console.log('🚀 Iniciando sistema de PDF...');
+          
+          // Aguardar React carregar e renderizar
+          const waitForReact = () => {
+            return new Promise((resolve, reject) => {
+              let attempts = 0;
+              const maxAttempts = 300; // 30 segundos
+              
+              const checkReact = () => {
+                attempts++;
+                const preview = document.getElementById('curriculo-preview');
+                
+                if (preview && preview.children.length > 0) {
+                  console.log('✅ React renderizado, preview encontrado');
+                  resolve(preview);
+                } else if (attempts >= maxAttempts) {
+                  reject(new Error('Timeout: React não renderizou'));
+                } else {
+                  setTimeout(checkReact, 100);
+                }
+              };
+              checkReact();
+            });
+          };
+          
+          // Carregar dependências
+          const loadDependencies = () => {
+            return new Promise((resolve, reject) => {
+              let loaded = 0;
+              const total = 2;
+              
+              const checkComplete = () => {
+                loaded++;
+                if (loaded === total) {
+                  console.log('✅ html2canvas e jsPDF carregados');
+                  resolve();
+                }
+              };
+              
+              // html2canvas
+              const script1 = document.createElement('script');
+              script1.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+              script1.onload = checkComplete;
+              script1.onerror = () => reject(new Error('Erro ao carregar html2canvas'));
+              document.head.appendChild(script1);
+              
+              // jsPDF
+              const script2 = document.createElement('script');
+              script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+              script2.onload = checkComplete;
+              script2.onerror = () => reject(new Error('Erro ao carregar jsPDF'));
+              document.head.appendChild(script2);
+            });
+          };
+          
+          // Gerar PDF - EXATAMENTE como no frontend
+          const generatePDF = async (element) => {
+            console.log('📸 Capturando elemento com html2canvas...');
+            
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: '#ffffff',
+              width: element.scrollWidth,
+              height: element.scrollHeight,
+              windowWidth: element.scrollWidth,
+              windowHeight: element.scrollHeight
+            });
+
+            console.log('📄 Gerando PDF com jsPDF...');
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            const imgWidth = 210;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            
+            console.log('✅ PDF gerado com sistema do frontend!');
+            return pdf.output('arraybuffer');
+          };
+          
+          // Processo completo
+          const runPDFGeneration = async () => {
+            try {
+              console.log('⏳ Aguardando React renderizar...');
+              const element = await waitForReact();
+              
+              console.log('⏳ Carregando dependências...');
+              await loadDependencies();
+              
+              console.log('⏳ Aguardando renderização completa...');
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              
+              console.log('📄 Gerando PDF...');
+              const pdfArrayBuffer = await generatePDF(element);
+              
+              // Disponibilizar resultado
+              window.PDF_DATA = pdfArrayBuffer;
+              window.PDF_READY = true;
+              
+              console.log('✅ PDF pronto para download!');
+            } catch (error) {
+              console.error('❌ Erro na geração:', error);
+              window.PDF_ERROR = error.message;
+              window.PDF_READY = true; // Sinalizar que terminou (com erro)
+            }
+          };
+          
+          // Iniciar processo
+          runPDFGeneration();
+        };
+        
+        // Iniciar quando DOM carregar
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', window.initPDFSystem);
+        } else {
+          window.initPDFSystem();
+        }
             });
           }
           
@@ -59,6 +183,73 @@ export async function renderPDFViaFrontend(data) {
             console.error('❌ Erro ao gerar PDF:', error);
             throw error;
           }
+}
+
+export async function generatePDFFromHTML(htmlContent) {
+  console.log('🚀 PUPPETEER: Carregando frontend com sistema de PDF...');
+  
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ]
+    });
+    
+    const page = await browser.newPage();
+    
+    // Configurar página
+    await page.setViewport({ width: 1200, height: 800 });
+    
+    console.log('⏳ Carregando HTML do frontend...');
+    await page.setContent(htmlContent, { 
+      waitUntil: 'networkidle0',
+      timeout: 60000 
+    });
+    
+    console.log('⏳ Aguardando sistema de PDF processar...');
+    await page.waitForFunction(() => window.PDF_READY, { 
+      timeout: 180000 // 3 minutos
+    });
+    
+    // Verificar se houve erro
+    const hasError = await page.evaluate(() => window.PDF_ERROR);
+    if (hasError) {
+      throw new Error(`Erro na geração: ${hasError}`);
+    }
+    
+    console.log('📄 Extraindo PDF gerado...');
+    const pdfArrayBuffer = await page.evaluate(() => {
+      if (!window.PDF_DATA) {
+        throw new Error('PDF_DATA não encontrado');
+      }
+      return window.PDF_DATA;
+    });
+    
+    if (!pdfArrayBuffer || pdfArrayBuffer.byteLength === 0) {
+      throw new Error('PDF gerado está vazio');
+    }
+    
+    const pdfBuffer = Buffer.from(pdfArrayBuffer);
+    console.log(`✅ PDF extraído com sistema do frontend! Tamanho: ${Math.round(pdfBuffer.length / 1024)}KB`);
+    
+    return pdfBuffer;
+    
+  } catch (error) {
+    console.error('❌ Erro no sistema frontend:', error.message);
+    throw error;
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
 }
 
 // Função para gerar HTML unificado com CSS puro inline
