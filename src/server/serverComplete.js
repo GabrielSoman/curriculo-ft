@@ -1,15 +1,19 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-const { renderPDFViaFrontend } = require('./pdfRenderer.js');
-const { pdfService } = require('./pdfDownloadService.js');
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { renderPDFViaFrontend } from './pdfRenderer.js';
+import { pdfService } from './pdfDownloadService.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Tratamento de sinais como no projeto que funcionou
 process.on('SIGTERM', () => {
   console.log('⚠️ Processo recebeu SIGTERM (foi encerrado pelo sistema)');
   pdfService.close();
 });
+
 const app = express();
 const PORT = process.env.PORT || 80;
 

@@ -1,7 +1,7 @@
 // SUB-APLICAÇÃO INTERNA PARA GERAR PDF COMO DOWNLOAD
 // Recebe HTML renderizado e retorna PDF via HTTP
 
-const puppeteer = require('puppeteer');
+import puppeteer from 'puppeteer';
 
 export class PDFDownloadService {
   constructor() {
