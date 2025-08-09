@@ -13,15 +13,37 @@ export async function renderPDFViaFrontend(data) {
   try {
     const distPath = path.join(__dirname, '../../dist');
     
-    } else {
-          // Verificar se o preview existe
-          const previewElement = document.getElementById('curriculo-preview');
-          if (previewElement) {
-            console.log('✅ Preview encontrado, sinalizando sucesso...');
-            document.title = 'PDF_READY';
-          } else {
-            console.log('⚠️ Preview não encontrado');
-            document.title = 'PDF_ERROR';
+      // USAR O RENDERIZADOR QUE JÁ USA O SISTEMA DO FRONTEND
+      console.log('🎯 Usando renderizador que executa html2canvas + jsPDF...');
+      return await renderPDFViaFrontend(JSON.parse(htmlContent.match(/window\.CURRICULUM_DATA = ({.*?});/)[1]));
+            throw new Error('Elemento curriculo-preview não encontrado');
+          }
+          
+          console.log('📸 Capturando com html2canvas...');
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: element.scrollWidth,
+            height: element.scrollHeight,
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight
+          });
+
+          console.log('📄 Gerando PDF com jsPDF...');
+          const imgData = canvas.toDataURL('image/png');
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          
+          const imgWidth = 210;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+          
+          console.log('✅ PDF gerado com sistema do frontend!');
+          return pdf.output('arraybuffer');
+        });
           }
 // Função para gerar HTML unificado com CSS puro inline
 function generateUnifiedHTML(data) {
@@ -384,8 +406,8 @@ function generateUnifiedHTML(data) {
                     <div class="content-text">${data.experiencia}</div>
                 </div>
             </div>
-            ` : ''}
-            </div>
+        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
+        return Buffer.from(pdfArrayBuffer);
             ${data.cursos ? `
             <div class="content-section">
                 <h3 class="content-title">

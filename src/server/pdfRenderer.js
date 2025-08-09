@@ -13,15 +13,63 @@ export async function renderPDFViaFrontend(data) {
   try {
     const distPath = path.join(__dirname, '../../dist');
     
-    } else {
-          // Verificar se o preview existe
-          const previewElement = document.getElementById('curriculo-preview');
-          if (previewElement) {
-            console.log('✅ Preview encontrado, sinalizando sucesso...');
-            document.title = 'PDF_READY';
-          } else {
-            console.log('⚠️ Preview não encontrado');
-            document.title = 'PDF_ERROR';
+        
+        const pdfArrayBuffer = await page.evaluate(async () => {
+          // Carregar html2canvas e jsPDF via CDN (mesmo do frontend)
+          if (!window.html2canvas) {
+            await new Promise((resolve, reject) => {
+              const script1 = document.createElement('script');
+              script1.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+              script1.onload = resolve;
+              script1.onerror = reject;
+              document.head.appendChild(script1);
+            });
+          }
+          
+          if (!window.jspdf) {
+            await new Promise((resolve, reject) => {
+              const script2 = document.createElement('script');
+              script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+              script2.onload = resolve;
+              script2.onerror = reject;
+              document.head.appendChild(script2);
+            });
+          }
+          
+          // Aguardar scripts carregarem
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // USAR EXATAMENTE O MESMO CÓDIGO DO FRONTEND
+          const element = document.getElementById('curriculo-preview');
+          if (!element) {
+            throw new Error('Elemento curriculo-preview não encontrado');
+          }
+          
+          console.log('📸 Capturando com html2canvas...');
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: element.scrollWidth,
+            height: element.scrollHeight,
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight
+          });
+
+          console.log('📄 Gerando PDF com jsPDF...');
+          const imgData = canvas.toDataURL('image/png');
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          
+          const imgWidth = 210;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+          
+          console.log('✅ PDF gerado com sistema do frontend!');
+          return pdf.output('arraybuffer');
+        });
           }
 // Função para gerar HTML unificado com CSS puro inline
 function generateUnifiedHTML(data) {
@@ -384,8 +432,8 @@ function generateUnifiedHTML(data) {
                     <div class="content-text">${data.experiencia}</div>
                 </div>
             </div>
-            ` : ''}
-            </div>
+        console.log('✅ PDF gerado usando EXATAMENTE o sistema do frontend!');
+        return Buffer.from(pdfArrayBuffer);
             ${data.cursos ? `
             <div class="content-section">
                 <h3 class="content-title">
