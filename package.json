@@ -11,15 +11,13 @@
     "easypanel": "npm run build && npm start"
   },
   "dependencies": {
-    "@playwright/test": "^1.54.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "wkhtmltopdf": "^0.4.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
