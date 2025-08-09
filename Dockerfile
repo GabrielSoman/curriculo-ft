@@ -19,6 +19,9 @@ COPY package*.json ./
 # Install all dependencies (including dev dependencies for build)
 RUN npm install
 
+# Install Playwright browsers
+RUN npx playwright install chromium
+
 # Copy all source files
 COPY . .
 
@@ -56,6 +59,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
 # Install only production dependencies
 RUN npm ci --only=production --no-audit --no-fund && \
     npm cache clean --force
+
+# Install Playwright browsers in production stage
+RUN npx playwright install chromium
 
 # Switch to non-root user
 USER nextjs
